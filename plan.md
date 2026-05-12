@@ -1,0 +1,1268 @@
+# DevConnect Uygulama Planı
+
+## 0. Belge Kimliği
+- BK-01 Bu belge, DevConnect projesinin uygulamaya dönük ana yürütme planıdır.
+- BK-02 Belge kaynağı olarak SPMP, SRS ve SDD raporları birlikte değerlendirilmiştir.
+- BK-03 Bu plan, raporların tekrarı değil; raporların uygulanabilir mühendislik yol haritasına dönüştürülmüş halidir.
+- BK-04 Planın ana amacı, projeyi temel katmanlardan başlayarak güvenli ve sürdürülebilir biçimde ayağa kaldırmaktır.
+- BK-05 Bu plan, ekip çalışmasına uygundur; ancak tek kişiyle ilerlenmesi durumunda da yürütülebilir şekilde hazırlanmıştır.
+- BK-06 Plan boyunca öncelik sırası her zaman doğruluk, güvenlik, veri bütünlüğü ve sürdürülebilirlik olacaktır.
+- BK-07 Her fazın sonunda bir kalite kapısı vardır; bu kapı geçilmeden sonraki faza geçilmeyecektir.
+- BK-08 Plan, minimum uygulanabilir ürün ile kurumsal kalite hedefini dengeli biçimde birleştirir.
+
+## 1. Gereksinim Teyidi
+- GT-01 Hedef ürün, yazılımcılar için hem sosyal ağ hem de teknik içerik paylaşım platformu olan DevConnect'tir.
+- GT-02 Temel modüller kimlik doğrulama, profil yönetimi, takip ağı, içerik paylaşımı, akış, medya, etkileşim ve gerçek zamanlı mesajlaşmadır.
+- GT-03 Kullanılacak ana teknoloji yönü Next.js, TypeScript, Express.js ve Supabase ekseninde kalacaktır.
+- GT-04 Plan yalnızca uygulama planı üretmek içindir; bu aşamada uygulama kodu yazılmayacaktır.
+- GT-05 Plan, büyük adımları daha küçük iş paketlerine bölecek ve bağımlılık sırasına göre ilerleyecektir.
+- GT-06 Her büyük adımın çıktısı, doğrulama yöntemi, riskleri ve tamamlanma kriteri açık biçimde yazılacaktır.
+- GT-07 Plan, raporlardaki güçlü kararları koruyacak; çelişkili veya eksik kararları mimari inisiyatifle düzeltecektir.
+- GT-08 Plan, ön yüz ile arka yüzün aynı anda gelişebilmesi için arayüz sözleşmelerini erkenden tanımlayacaktır.
+- GT-09 Plan, güvenlik gereksinimlerini özelliklerden ayrı değil, her fazın doğal parçası olarak işleyecektir.
+- GT-10 Plan, test edilebilirlik, izlenebilirlik ve bakım kolaylığını teslimin sonuna bırakmayacaktır.
+- GT-11 Plan, kurumsal seviyede kod kalitesi hedefi taşıdığı için fazlar arasında aceleyle geçişe izin vermeyecektir.
+- GT-12 Plan dosyası bilinçli olarak ayrıntılı hazırlanmış ve geniş iş kırılımı içerecek şekilde tasarlanmıştır.
+- GT-13 Kodlar gereksiz soyutlama ve gereksiz uzunluk üretmeden, işi karşılayacak kadar basit ve kısa tasarlanacaktır.
+- GT-14 Her ana kod grubu veya feature kendi `config` dosyasına ya da `config` modülüne sahip olacak; değişebilir bütün değerler burada toplanacaktır.
+- GT-15 Türkçe yorum satırları kısa, net ve bakım odaklı olacak; özellikle ne, neden ve nasıl dengesini bozmadan açıklama yapacaktır.
+
+## 2. Raporlardan Türetilen Değişmeyen Ürün Gerçekleri
+- RG-01 Sistem bir web uygulaması olacaktır.
+- RG-02 Kullanıcı kayıt ve giriş işlemleri zorunlu temel akıştır.
+- RG-03 Kullanıcı profili, biyografi, avatar ve beceri odaklı alanlar ilk sürümde bulunacaktır.
+- RG-04 Kullanıcılar birbirini takip edebilecek ve akış bu ilişkiyi temel alacaktır.
+- RG-05 Gönderiler metin, görsel veya kod bloğu içerebilecektir.
+- RG-06 Beğeni ve yorum mekanizmaları ilk sürüm kapsamındadır.
+- RG-07 Doğrudan mesajlaşma ilk sürümde yer alacaktır.
+- RG-08 Supabase veritabanı, kimlik doğrulama, depolama ve gerçek zamanlı iletişim için ana platform olacaktır.
+- RG-09 Tüm kritik veri akışları HTTPS ve WSS üzerinden çalışacaktır.
+- RG-10 Veritabanı göçleri sürüm kontrollü migration dosyaları ile yönetilecektir.
+- RG-11 Uygulama mobil tarayıcılarda temel kullanımı destekleyecek şekilde responsive olacaktır.
+- RG-12 Son teslim hedefi çalışan uygulama, kaynak kodlar ve proje dokümantasyonudur.
+
+## 3. Düzeltilen ve Netleştirilen Mimari Kararlar
+- DM-01 Raporlardaki mantıksal `users` varlığı fiziksel uygulamada `auth.users` ve `public.profiles` ayrımıyla kurulacaktır.
+- DM-02 Kimlik bilgileri Supabase Auth tarafından yönetilecek; profil verileri `public.profiles` içinde tutulacaktır.
+- DM-03 Next.js tarafı sadece klasik SPA gibi değil, hibrit App Router yaklaşımıyla kurulacaktır.
+- DM-04 İlk yükleme, yönlendirme ve yetki kontrolünde server destekli akış; etkileşimli ekranlarda client ağırlıklı akış tercih edilecektir.
+- DM-05 Express.js REST API ayrı bir servis olarak tasarlanacaktır; Vercel üzerinde uzun ömürlü klasik Express beklenmeyecektir.
+- DM-06 Ön yüz için Vercel, Express API için Render veya Railway benzeri sürekli Node servisi kullanılacaktır.
+- DM-07 Mesajlaşma için birincil tercih Supabase Realtime olacaktır; Socket.IO ancak gerçek ihtiyaç çıkarsa ikinci faz yedeği olarak değerlendirilecektir.
+- DM-08 MongoDB ilk sürümden çıkarılacaktır; tek veri kaynağı olarak PostgreSQL korunacaktır.
+- DM-09 Tüm endpoint'ler auth gerektirir ifadesi, `register` ve `login` gibi zorunlu kamu uçları hariç olacak şekilde düzeltilmiştir.
+- DM-10 Syntax highlighting için iki kütüphane birlikte kullanılmayacaktır; tek çözüm seçilecektir.
+- DM-11 Önerilen tercih Shiki veya eşdeğer tek bir sözdizimi vurgulama altyapısıdır.
+- DM-12 JWT erişim belirteçleri mümkün olduğunca HTTPOnly oturum yaklaşımıyla yönetilecek; `localStorage` tabanlı saklama tercih edilmeyecektir.
+- DM-13 Service role anahtarı istemciye hiçbir koşulda gönderilmeyecek ve sadece güvenli sunucu tarafı akışlarında kullanılacaktır.
+- DM-14 RLS politikaları başlangıçta tamamen kapalı kalmayacak; bunun yerine varsayılan olarak reddeden ve testle açılan model kurulacaktır.
+
+## 4. Hedef Ürün Tanımı
+- HU-01 DevConnect'in ana sayfası, kullanıcının takip ettiği hesapların içeriklerini gösteren bir teknik sosyal akış olacaktır.
+- HU-02 Yeni kullanıcı için boş ana akış durumunda rastgele herkesi göstermek yerine yönlendirici boş durum ekranı sunulacaktır.
+- HU-03 Profil ekranı, kullanıcının uzmanlık alanlarını ve paylaşımlarını temsil eden profesyonel bir kartvizit gibi davranacaktır.
+- HU-04 Kod paylaşımı, sistemin ayırt edici yönlerinden biri olduğu için sadece düz metin post gibi ele alınmayacaktır.
+- HU-05 Beğeni ve yorum etkileşimleri hafif ama güvenilir kalacaktır; karmaşık sosyal oyunlaştırma ilk sürümde olmayacaktır.
+- HU-06 DM sistemi birebir mesajlaşmaya odaklanacaktır; grup sohbeti ilk sürümde yer almayacaktır.
+- HU-07 Uygulama, yazılımcılar için profesyonel ve teknik odaklı hissiyat verecek, genel amaçlı sosyal ağ gibi dağılmayacaktır.
+- HU-08 Güvenlik, performans ve veri bütünlüğü kullanıcı deneyiminden bağımsız değil; ürün değerinin bir parçası kabul edilecektir.
+- HU-09 Kullanıcı ilk 5 dakika içinde hesap oluşturup profilini tamamlayıp birini takip edip ilk postunu paylaşabilmelidir.
+- HU-10 Sistem, ders projesi sınırları içinde kalsa da kurumsal mimari disipliniyle ele alınacaktır.
+
+## 5. MVP Kapsamı
+- MVP-01 E-posta ve şifre ile kayıt.
+- MVP-02 Güvenli giriş ve çıkış.
+- MVP-03 Yetkilendirilmiş oturum kontrolü.
+- MVP-04 Profil görüntüleme.
+- MVP-05 Profil güncelleme.
+- MVP-06 Avatar yükleme.
+- MVP-07 Biyografi ve beceri etiketleri.
+- MVP-08 Takip etme.
+- MVP-09 Takipten çıkma.
+- MVP-10 Takipçi ve takip edilen sayaçları.
+- MVP-11 Metin postu oluşturma.
+- MVP-12 Kod bloğu içeren post oluşturma.
+- MVP-13 Görselli post oluşturma.
+- MVP-14 Kullanıcının kendi postunu silmesi.
+- MVP-15 Takip edilen kullanıcılara göre feed görüntüleme.
+- MVP-16 Cursor tabanlı sonsuz kaydırma.
+- MVP-17 Post beğenme ve beğeniyi geri alma.
+- MVP-18 Posta yorum ekleme.
+- MVP-19 Mesaj geçmişini görme.
+- MVP-20 Gerçek zamanlı birebir mesajlaşma.
+- MVP-21 Mesajların yeniden bağlanma sonrası sürdürülebilmesi.
+- MVP-22 Responsive arayüz.
+- MVP-23 Temel loglama ve hata gözlemlenebilirliği.
+- MVP-24 Otomatik migration yönetimi.
+- MVP-25 Canlıya alınmış web arayüzü ve çalışan API.
+
+## 6. İlk Sürüm Dışı Kapsam
+- KD-01 Kullanıcı adı değiştirme ilk sürüm dışındadır.
+- KD-02 Bildirim sistemi ilk sürüm dışındadır.
+- KD-03 Gelişmiş arama ve keşfet ekranı ilk sürüm dışındadır.
+- KD-04 Algoritmik sıralama veya öneri motoru ilk sürüm dışındadır.
+- KD-05 Video yükleme ilk sürüm dışındadır.
+- KD-06 Grup sohbeti ilk sürüm dışındadır.
+- KD-07 Push notification ilk sürüm dışındadır.
+- KD-08 Gelişmiş moderasyon paneli ilk sürüm dışındadır.
+- KD-09 Çoklu dil desteği ilk sürüm dışındadır.
+- KD-10 Harici OAuth sağlayıcıları ilk sürüm dışındadır.
+- KD-11 Gelişmiş analiz paneli ilk sürüm dışındadır.
+- KD-12 Mikroservis ayrıştırması ilk sürüm dışındadır.
+
+## 7. Başarı Metrikleri
+- BM-01 Ana sayfa ilk anlamlı içerik yükü normal ağ koşullarında 3 saniyenin altında olmalıdır.
+- BM-02 Kritik API yanıt süresi hedefi 500 ms altıdır.
+- BM-03 Mesaj teslim gecikmesi normal koşullarda 500 ms altında hedeflenmelidir.
+- BM-04 Aynı kullanıcının aynı postu ikinci kez beğenmesi fiziksel olarak engellenmelidir.
+- BM-05 Yetkisiz veri erişimi testlerinde sıfır kritik açık hedeflenmelidir.
+- BM-06 Ekip, en az 50 eşzamanlı aktif kullanıcı senaryosunu temel seviyede kaldırabilmelidir.
+- BM-07 Kritik kullanıcı yolculuklarının tamamı E2E test senaryolarıyla kapsanmalıdır.
+- BM-08 Veri kaybına yol açan migration veya silme hataları kabul edilemez sayılacaktır.
+- BM-09 Her faz sonunda çalışan ve gösterilebilir bir çıktı üretilmiş olmalıdır.
+- BM-10 Son teslimde kurulum talimatı, mimari özet ve test kanıtı bulunmalıdır.
+
+## 8. Yüksek Seviye Mimari Çerçeve
+- MC-01 Kod tabanı monorepo mantığıyla düzenlenecektir.
+- MC-02 Önerilen kök klasörler `apps/web`, `apps/api`, `packages/shared`, `infra`, `docs` olacaktır.
+- MC-03 Ön yüz Next.js App Router ile geliştirilecektir.
+- MC-04 Veri çekme ve client cache yönetimi için TanStack Query kullanılacaktır.
+- MC-05 Form yönetimi için React Hook Form ve ortak doğrulama şemaları kullanılacaktır.
+- MC-06 Backend tarafı Express.js ve TypeScript ile modüler yapı halinde kurulacaktır.
+- MC-07 API katmanı controller, service, repository ve validation sorumluluklarına ayrılacaktır.
+- MC-08 Ortak tipler ve DTO'lar `packages/shared` altında tutulacaktır.
+- MC-09 Supabase, auth, PostgreSQL, storage ve realtime için tek platform olarak kullanılacaktır.
+- MC-10 Gönderi medyası için ayrı bucket, avatar için ayrı bucket kullanılacaktır.
+- MC-11 Her tablo için RLS politikaları varsayılan reddetme yaklaşımıyla yazılacaktır.
+- MC-12 SQL fonksiyonları sadece gerçekten veriye yakın hesaplama gereken yerlerde kullanılacaktır.
+- MC-13 Feed için cursor tabanlı sayfalama kullanılacaktır.
+- MC-14 Post ve etkileşim tarafında idempotent uçlar tercih edilecektir.
+- MC-15 İstemci ve sunucu hata sözleşmeleri tek tip JSON hata modeliyle standardize edilecektir.
+- MC-16 Gözlemlenebilirlik için request id, yapılandırılmış log ve hata izleme bulunacaktır.
+- MC-17 CI hattı, lint, test ve build aşamalarını geçmeden birleşime izin vermeyecektir.
+- MC-18 Dokümantasyon, geliştirme sürecine paralel üretilecek; sona bırakılmayacaktır.
+- MC-19 Her uygulama, modül veya feature grubu kendi `config.ts` ya da eşdeğer config dosyasına sahip olacaktır.
+- MC-20 Sayı limitleri, tekrar deneme süreleri, upload boyutları, sayfa boyutları ve benzeri değişebilir değerler kod içine dağılmayacak, config katmanında toplanacaktır.
+- MC-21 Config katmanı sade tutulacak; varsayılan değerler açık biçimde görülecek ve gerektiğinde ortam değişkenleriyle override edilebilecektir.
+- MC-22 Mimari kararlar temiz olacak ancak gereksiz katmanlaşmaya gidilmeyecek; modül içinde minimum ama anlaşılır dosya sayısı hedeflenecektir.
+- MC-23 Kod açıklamaları Türkçe, kısa ve kritik karar noktalarını bakım kolaylığı sağlayacak düzeyde açıklayan standartla yazılacaktır.
+
+## 8A. Basit Kod, Config ve Yorum Standardı
+- BCY-01 Tüm uygulama, mümkün olan en basit ama gereksinimi tam karşılayan çözümle geliştirilecektir.
+- BCY-02 Sırf kurumsal görünsün diye eklenen gereksiz soyut katmanlar, yardımcı sınıflar veya fazla parçalanmış dosya yapıları oluşturulmayacaktır.
+- BCY-03 Her kod grubu için değişebilir değerler tek bakışta bulunabilen bir `config` dosyasında toplanacaktır.
+- BCY-04 `config` dosyalarında limitler, sayfa boyutları, metin sınırları, süreler, retry sayıları, bucket adları ve benzeri oynanabilir değerler yer alacaktır.
+- BCY-05 Magic number ve hard-coded string kullanımı yalnızca gerçekten sabit olan alanlarla sınırlı tutulacaktır.
+- BCY-06 Önerilen klasör sözleşmesi, her feature için iş kodları yanında bir `config.ts` dosyası bulunacak şekilde kurulacaktır.
+- BCY-07 `config` dosyaları aşırı soyutlanmayacak; okunur, kısa ve gerektiğinde tahtada hızlıca değiştirilebilir yapıda olacaktır.
+- BCY-08 Yorum satırları sadece faydalı oldukları yerde yazılacak; kodu tekrarlayan gereksiz açıklamalar eklenmeyecektir.
+- BCY-09 Türkçe yorumlar kısa olacak ama kritik noktada ne yapıldığını, neden o yolun seçildiğini ve nasıl çalıştığını anlayacak kadar bilgi verecektir.
+- BCY-10 Faz geçişlerinde yalnızca çalışırlık değil; basitlik, config disiplini ve yorum kalitesi de kontrol edilecektir.
+
+## 9. Temelden Tavana Çalışma İlkeleri
+- TI-01 Önce veri modeli netleşecek, sonra API sözleşmeleri, sonra arayüz detayları gelecektir.
+- TI-02 Temel güvenlik altyapısı oturmadan iş özelliği geliştirme hızlandırılmayacaktır.
+- TI-03 Tüm iş akışları önce doğru çalışacak, sonra optimize edilecektir.
+- TI-04 Modüller paralel geliştirilecek olsa bile bağımlılık sırası ihlal edilmeyecektir.
+- TI-05 Her faz sonunda teknik borç listesi güncellenecektir.
+- TI-06 Test yazımı sadece son fazın işi olmayacak; her modül kendi doğum anında test planı alacaktır.
+- TI-07 Mimari kararlar sözlü değil yazılı tutulacaktır.
+- TI-08 Varsayımlar, açık risk ve karar kayıtları içinde izlenecektir.
+- TI-09 Kullanıcı deneyimi, veri tutarsızlığı pahasına iyileştirilmeyecektir.
+- TI-10 Güvenlik boşluğu oluşturan hızlandırmalar, süre baskısı olsa bile kabul edilmeyecektir.
+- TI-11 İlk sürüm kapsamı korunacak; sürekli yeni özellik eklenerek plan bozulmayacaktır.
+- TI-12 Her faz sonunda demo yapılacak ve sonraki faz, bir öncekinin üzerine inşa edilecektir.
+- TI-13 Her fazda ilk tercih, daha karmaşık çözüm değil daha sade ve bakım dostu çözüm olacaktır.
+- TI-14 Her yeni modül veya feature oluşturulurken aynı anda ilgili `config` dosyası da oluşturulacak ve değişebilir değerler en baştan dışarı alınacaktır.
+- TI-15 Kritik kararların bulunduğu kod bloklarında kısa Türkçe yorum standardı uygulanacak; yorumsuz karmaşık blok bırakılmayacaktır.
+- TI-16 Tahtada hızlı değişiklik ihtimali olan eşik ve parametreler doğrudan kod akışı içine gömülmeyecektir.
+
+## 10. Faz 0 - Proje Yönetişimi ve Kapsam Dondurma
+- F0-Amaç Projenin hedefini, sınırını, ekip çalışma biçimini ve teslim ölçütlerini netleştirmek.
+- F0-Neden Şimdi Temel anlaşma olmadan yapılacak tüm teknik işlerde geri dönüş maliyeti yükselecektir.
+- F0-Girdi SPMP, SRS, SDD raporları ve ders teslim beklentileri.
+- F0-Çıktı Onaylı MVP kapsamı, faz listesi, sorumluluk matrisi ve risk kaydı.
+- F0-Bağımlılık Yok.
+- F0-Risk Gereksinim kayması ve fazlara yanlış öncelik verilmesi.
+- F0-Kalite Kapısı Kapsam ve başarı ölçütleri yazılı onay almadan Faz 1'e geçilmeyecek.
+- F0-Standart-01 Basit kod, modül bazlı config ve kısa Türkçe yorum standardı proje sözleşmesine zorunlu madde olarak eklenecektir.
+- F0-Standart-02 Sonraki tüm fazların kabulünde gereksiz komplekslik, hard-coded değerler ve yetersiz yorum kontrolü ayrıca yapılacaktır.
+- F0-01 SPMP, SRS ve SDD satır satır karşılaştırmalı olarak okunacak.
+- F0-02 Çelişen kararlar tek listede toplanacak.
+- F0-03 Ders için zorunlu teslim çıktıları ayrı listelenecek.
+- F0-04 Ürünün ilk sürümde yapacakları ve yapmayacakları açıklaştırılacak.
+- F0-05 P1, P2 ve P3 öncelik seviyeleri yeniden kalibre edilecek.
+- F0-06 Başlıca kullanıcı rolleri ve birincil kullanıcı yolculukları çıkarılacak.
+- F0-07 Teknik olmayan ama teslimi etkileyen varsayımlar kayıt altına alınacak.
+- F0-08 Ekip içi iletişim ritmi belirlenecek.
+- F0-09 Sprint süresi netleştirilecek.
+- F0-10 İşlerin kabul ölçütleri standartlaştırılacak.
+- F0-11 Teknik borç kaydı için ayrı bir liste açılacak.
+- F0-12 Risk kaydı için sahiplik alanı belirlenecek.
+- F0-13 Rapor güncellemeleri ile kod tabanı arasındaki eşleştirme mantığı tanımlanacak.
+- F0-14 Terminoloji sözlüğü oluşturulacak.
+- F0-15 Ortak karar şablonu hazırlanacak.
+- F0-16 Branch isimlendirme kuralı belirlenecek.
+- F0-17 Pull request inceleme standardı yazılacak.
+- F0-18 Hata, görev ve iyileştirme tipleri ayrıştırılacak.
+- F0-19 Her modül için sorumlu ve yedek kişi belirlenecek.
+- F0-20 Demo günleri ve ara kontrol noktaları tanımlanacak.
+- F0-21 Geliştirme ortamı ve üretim ortamı ayrımı netleştirilecek.
+- F0-22 Test verisi kullanımı ilkesi yazılacak.
+- F0-23 Dokümantasyon klasör yapısı kararlaştırılacak.
+- F0-24 Plan dışı talep geldiğinde değişiklik kontrol mekanizması belirlenecek.
+- F0-25 Her faz için giriş ve çıkış kriteri tanımlanacak.
+- F0-26 Yetki matrisinin kim tarafından güncelleneceği atanacak.
+- F0-27 Uygulama içinde kritik alanlar için onay gerektiren kararlar listelenecek.
+- F0-28 Nihai kapsam dondurma kararı proje başlangıç tutanağına yazılacak.
+- F0-DoD-01 MVP listesi ve kapsam dışı liste yazılı hale gelmiş olmalı.
+- F0-DoD-02 Rapor çelişkileri görünür ve çözümlenebilir durumda olmalı.
+- F0-DoD-03 Sorumluluk matrisi belirsizlik içermemeli.
+- F0-DoD-04 Risk kaydı oluşturulmuş olmalı.
+- F0-DoD-05 Faz 1'e hangi kararlarla girildiği herkes tarafından biliniyor olmalı.
+
+## 11. Faz 1 - Hedef Mimari ve Karar Kayıtları
+- F1-Amaç Uygulanabilir sistem topolojisini ve modül sınırlarını son hale getirmek.
+- F1-Neden Şimdi Mimari netlik olmadan repo yapısı, migration düzeni ve API tasarımı yanlış kurulabilir.
+- F1-Girdi Faz 0 kapsam kararı ve raporlar.
+- F1-Çıktı Mimari karar kayıtları, bileşen şemaları ve veri akış tanımları.
+- F1-Bağımlılık Faz 0 tamamlanmış olmalı.
+- F1-Risk Aynı işi yapan fazla teknoloji veya çakışan sorumluluklar seçmek.
+- F1-Kalite Kapısı Tüm ana teknoloji kararları ADR formatında yazılmadan Faz 2'ye geçilmeyecek.
+- F1-Standart-01 Hedef mimaride her kod grubunun kendi `config` dosyasıyla yaşaması klasör sözleşmesi olarak tanımlanacaktır.
+- F1-Standart-02 Modül sınırları belirlenirken gereksiz katmanlaşmadan kaçınılacak ve yorum standardı mimari kararlara işlenecektir.
+- F1-01 Uygulamanın ön yüz, API ve Supabase katmanları arasındaki sorumluluk sınırı netleştirilecek.
+- F1-02 Ön yüzün Next.js App Router ile hibrit çalışacağı resmi karara bağlanacak.
+- F1-03 Express API'nin ayrı servis olarak yaşayacağı kararı onaylanacak.
+- F1-04 Supabase Auth ile Express auth middleware entegrasyon modeli tanımlanacak.
+- F1-05 `auth.users` ile `public.profiles` ayrımı mimari karar kaydına yazılacak.
+- F1-06 İlk sürümde yalnızca PostgreSQL kullanılacağı netleştirilecek.
+- F1-07 Gerçek zamanlı katmanda Supabase Realtime birincil seçenek olarak sabitlenecek.
+- F1-08 Socket.IO yedek karar olarak not edilecek ama ilk sürüme dahil edilmeyecek.
+- F1-09 Feed'in yalnızca takip edilen hesapları gösterdiği kural kesinleştirilecek.
+- F1-10 Yeni kullanıcı boş akış deneyimi için UX kararı verilecek.
+- F1-11 Kod blokları için tek syntax highlight çözümü seçilecek.
+- F1-12 Dosya yükleme hattının istemci sıkıştırma artı bucket yükleme biçimi belirlenecek.
+- F1-13 Avatar ve post medyası için ayrı depolama politikaları tanımlanacak.
+- F1-14 Mesajlaşmanın veri modeli ve istemci durum akışı taslak olarak çizilecek.
+- F1-15 Hata yanıt şeması standardize edilecek.
+- F1-16 API versiyonlama stratejisi kararlaştırılacak.
+- F1-17 Ortam değişkenleri ve secret yönetim modeli tanımlanacak.
+- F1-18 Monorepo yapısının paket sınırları belirlenecek.
+- F1-19 Ortak tiplerin nerede tutulacağı kararlaştırılacak.
+- F1-20 Loglama ve request id standardı seçilecek.
+- F1-21 Sağlık kontrolü uçları ve operasyonel uçlar listelenecek.
+- F1-22 Sunum için gerekli mimari diyagram türleri belirlenecek.
+- F1-23 Yetki doğrulama akışında service role kullanım kuralları yazılacak.
+- F1-24 Depolama bucket erişim kuralları güvenlik açısından gözden geçirilecek.
+- F1-25 Migration akışı ve rollback politikası tanımlanacak.
+- F1-26 Her modül için veri sahipliği ve API sahipliği yazılacak.
+- F1-27 Mimari kararların SRS ve SDD izlenebilirliği kaydedilecek.
+- F1-28 Faz sonunda bir sayfalık sistem topolojisi özeti hazırlanacak.
+- F1-DoD-01 En az tüm kritik kararlar için ADR kaydı bulunmalı.
+- F1-DoD-02 Sistem topolojisi görsel veya metinsel olarak tek anlamlı olmalı.
+- F1-DoD-03 Aynı işi yapan iki farklı teknoloji çözümü bırakılmamalı.
+- F1-DoD-04 Veri sahipliği ve servis sınırları net olmalı.
+- F1-DoD-05 Faz 2'de dizin ve repo yapısı tartışmasız kurulabilir olmalı.
+
+## 12. Faz 2 - Repo, Geliştirme Ortamı ve Kalite Omurgası
+- F2-Amaç Kod tabanının üretilebilir, test edilebilir ve yönetilebilir temelini kurmak.
+- F2-Neden Şimdi Sağlam repo iskeleti kurulmadan modül geliştirmeye geçmek teknik borcu katlayacaktır.
+- F2-Girdi Faz 1 mimari kararları.
+- F2-Çıktı Çalışan monorepo yapısı, ortak araç zinciri ve temel CI hattı.
+- F2-Bağımlılık Faz 1 onayı.
+- F2-Risk Düzensiz klasör yapısı ve tutarsız kalite araçları.
+- F2-Kalite Kapısı Lint, test ve build iskeleti başarısızsa Faz 3'e geçilmeyecek.
+- F2-Standart-01 Repo iskeletinde her ana modül için `config` dosyası bulunan klasör şablonu zorunlu hale getirilecektir.
+- F2-Standart-02 Kod inceleme ve lint rehberine kısa, anlamlı Türkçe yorum ve basit kod beklentisi eklenecektir.
+- F2-01 Monorepo kök yapısı oluşturulacak.
+- F2-02 `apps/web` klasörü tanımlanacak.
+- F2-03 `apps/api` klasörü tanımlanacak.
+- F2-04 `packages/shared` klasörü tanımlanacak.
+- F2-05 `infra` klasörü migration ve altyapı dosyaları için ayrılacak.
+- F2-06 `docs` klasörü yaşayan dokümantasyon için oluşturulacak.
+- F2-07 Kök `package.json` workspace mantığıyla düzenlenecek.
+- F2-08 TypeScript taban yapılandırması paylaşılacak.
+- F2-09 ESLint kuralları ortaklaştırılacak.
+- F2-10 Format standardı Prettier ile sabitlenecek.
+- F2-11 Commit mesaj standardı belirlenecek.
+- F2-12 Pre-commit kalite kontrolleri eklenecek.
+- F2-13 Ortak path alias yapısı tanımlanacak.
+- F2-14 Ortam değişkeni örnek dosyaları hazırlanacak.
+- F2-15 Yerel geliştirme için README başlangıç talimatı yazılacak.
+- F2-16 Git ignore kuralları doğrulanacak.
+- F2-17 CI için lint işi eklenecek.
+- F2-18 CI için test işi eklenecek.
+- F2-19 CI için web build işi eklenecek.
+- F2-20 CI için api build işi eklenecek.
+- F2-21 PR şablonu hazırlanacak.
+- F2-22 Issue şablonları hazırlanacak.
+- F2-23 Branch koruma kuralları tanımlanacak.
+- F2-24 Bağımlılık güncelleme stratejisi belirlenecek.
+- F2-25 Güvenlik taraması için temel paket analizi eklenecek.
+- F2-26 Kod sahipliği mantığı yazılacak.
+- F2-27 Yerel çalıştırma komutları tek komutta ayağa kalkacak hale getirilecek.
+- F2-28 Kök seviyede proje kararlarının özeti dokümante edilecek.
+- F2-DoD-01 Tek komutla bağımlılıklar kurulup uygulama iskeleti ayağa kalkabilmeli.
+- F2-DoD-02 Lint ve build işleri boş iskelet üzerinde yeşil olmalı.
+- F2-DoD-03 Ortak tip paylaşımı için paket sınırı çalışıyor olmalı.
+- F2-DoD-04 Ekip üyeleri aynı klasör düzenini kullanıyor olmalı.
+- F2-DoD-05 Faz 3'te veritabanı işleri güvenle başlatılabilir olmalı.
+
+## 13. Faz 3 - Veri Modeli, Migration ve Supabase Temeli
+- F3-Amaç Uygulamanın veri omurgasını doğru ve geri izlenebilir biçimde kurmak.
+- F3-Neden Şimdi Veri modeli oturmadan API ve arayüz kararı sağlıklı verilemez.
+- F3-Girdi Faz 1 mimari kararları ve Faz 2 altyapısı.
+- F3-Çıktı Migration dosyaları, tablo şemaları, indeksler, RLS politikaları ve seed verileri.
+- F3-Bağımlılık Faz 2 tamamlanmış olmalı.
+- F3-Risk Sonradan değişmesi pahalı tablo ilişkileri ve yanlış güvenlik varsayımları.
+- F3-Kalite Kapısı Migration'lar temiz kurulumda sorunsuz çalışmadan Faz 4'e geçilmeyecek.
+- F3-Standart-01 Veri limitleri, retry sayıları ve uygulama eşikleri veritabanı migration'ları ile ilgili `config` dosyaları arasında açık haritalanacaktır.
+- F3-Standart-02 Şema tarafında karmaşık ama gereksiz çözümlerden kaçınılacak; yalnızca ürün ihtiyacını taşıyan sade tablo yapıları kurulacaktır.
+- F3-01 Supabase proje yapısı oluşturulacak.
+- F3-02 Kimlik verisi ile profil verisi ayrımı migration seviyesinde kurulacak.
+- F3-03 `public.profiles` tablosu oluşturulacak.
+- F3-04 `follows` ilişkisi composite key ile kurulacak.
+- F3-05 `posts` tablosu içerik türü alanı ile oluşturulacak.
+- F3-06 `likes` tablosu composite key ile kurulacak.
+- F3-07 `comments` tablosu uygun foreign key kısıtlarıyla oluşturulacak.
+- F3-08 `messages` tablosu birebir DM akışına uygun kurulacak.
+- F3-09 Profil sayaç alanları gerçekten gerekli ise açıkça tanımlanacak.
+- F3-10 Takipçi sayaçları için trigger veya güvenli SQL fonksiyonu tasarlanacak.
+- F3-11 Profil oluşturma için auth tetikleme mekanizması planlanacak.
+- F3-12 `posts.user_id` ve `posts.created_at` üzerinde performans odaklı indeksler eklenecek.
+- F3-13 `messages` tablosu için gönderici, alıcı ve tarih indeksleri eklenecek.
+- F3-14 Yorumlar için post bazlı sorgu indeksleri tanımlanacak.
+- F3-15 Like sayımı için pahalı tam taramaları azaltacak strateji belirlenecek.
+- F3-16 Soft delete gereksinimi olmayan tablolar için gereksiz karmaşıklık eklenmeyecek.
+- F3-17 Mesaj içeriği için uzunluk sınırı veritabanında da korunacak.
+- F3-18 Post tipleri için `CHECK` kısıtı yazılacak.
+- F3-19 Follow self-reference engeli veritabanı seviyesinde eklenecek.
+- F3-20 Aynı takip kaydının çift oluşumu fiziksel olarak engellenecek.
+- F3-21 Avatar bucket ve post media bucket adları standartlaştırılacak.
+- F3-22 Storage erişim politikaları tablo güvenliğiyle uyumlu olacak şekilde yazılacak.
+- F3-23 RLS politikaları önce `deny by default` mantığıyla oluşturulacak.
+- F3-24 Profilleri okuma ve yazma politikaları ayrı ayrı tanımlanacak.
+- F3-25 Post sahipliği, yorum sahipliği ve mesaj görünürlüğü politikaları ayrı ayrı yazılacak.
+- F3-26 Temiz örnek veri seti geliştirilecek.
+- F3-27 Migration'lar boş veritabanı üzerinde baştan test edilecek.
+- F3-28 Şema kararları SDD ile izlenebilir hale getirilecek.
+- F3-DoD-01 Tüm migration'lar sıfırdan kurulumda çalışmalı.
+- F3-DoD-02 RLS politikaları kritik tablolar için yazılmış olmalı.
+- F3-DoD-03 Şema, ilk sürüm kapsamını eksiksiz taşımalı ama gereksiz genişlememeli.
+- F3-DoD-04 En az temel indeksler tanımlanmış olmalı.
+- F3-DoD-05 Faz 4 auth akışları bu veri modeline güvenebilmelidir.
+
+## 14. Faz 4 - Kimlik Doğrulama ve Güvenlik Temeli
+- F4-Amaç Güvenli oturum, kimlik, yetki ve giriş doğrulama omurgasını kurmak.
+- F4-Neden Şimdi Auth olmadan diğer modüller doğru sahiplik ve erişim kontrolü kuramaz.
+- F4-Girdi Faz 3 veri modeli ve Supabase ayarları.
+- F4-Çıktı Register, login, logout, oturum doğrulama ve güvenlik orta katmanları.
+- F4-Bağımlılık Faz 3 tamamlanmış olmalı.
+- F4-Risk Yanlış token yönetimi veya RLS delikleri.
+- F4-Kalite Kapısı Yetkisiz erişim testleri geçmeden Faz 5'e geçilmeyecek.
+- F4-Standart-01 Auth süreleri, rate limit eşikleri ve oturum parametreleri merkezi config altında yönetilecektir.
+- F4-Standart-02 Güvenlik açısından kritik akışlarda kısa Türkçe yorumlarla kararın nedeni açık bırakılacaktır.
+- F4-01 Kayıt akışının alanları ve doğrulama kuralları kesinleştirilecek.
+- F4-02 Giriş akışının hata senaryoları tanımlanacak.
+- F4-03 Çıkış akışının oturum temizleme mantığı belirlenecek.
+- F4-04 Oturumun istemci tarafında nasıl tutulacağı güvenlik açısından netleştirilecek.
+- F4-05 Tarayıcı tabanlı akışta HTTPOnly tabanlı güvenli yaklaşım tercih edilecek.
+- F4-06 Kimlik doğrulama gerektiren API uçları merkezi middleware ile korunacak.
+- F4-07 Auth gerektirmeyen kamu uçları ayrı beyaz listeye alınacak.
+- F4-08 Yetki bağlamı `req.user` veya eşdeğer request context nesnesine bağlanacak.
+- F4-09 Zorunlu alanlar için şema bazlı doğrulama uygulanacak.
+- F4-10 Girdi temizleme stratejisi HTML ve komut yerleştirme risklerini azaltacak biçimde seçilecek.
+- F4-11 Giriş denemeleri için rate limiting uygulanacak.
+- F4-12 Şifre politikası kullanıcı deneyimini bozmadan güvenli eşik sağlayacak.
+- F4-13 Gerekirse e-posta doğrulama akışı ders kapsamı ve süreye göre kararlandırılacak.
+- F4-14 Yetkisiz kullanıcıların profil düzenleme, post silme ve mesaj okuma girişimleri test edilecek.
+- F4-15 Service role kullanımına gerçekten ihtiyaç duyan akışlar daraltılacak.
+- F4-16 Service role ile çalışan kod yolları açıkça etiketlenecek.
+- F4-17 CORS politikası sadece gerekli origin'leri kapsayacak biçimde yazılacak.
+- F4-18 Hata mesajları bilgi sızdırmayacak seviyede sadeleştirilecek.
+- F4-19 Güvenli başlıklar ve temel HTTP sertleştirme kararları alınacak.
+- F4-20 Auth logları PII sızdırmayacak biçimde tasarlanacak.
+- F4-21 Kayıt sonrası profil satırı oluşturma akışı doğrulanacak.
+- F4-22 Token süresi ve yenileme davranışı yazılı hale getirilecek.
+- F4-23 Korunan route'lar ön yüzde de kullanıcı deneyimi seviyesinde kontrol edilecek.
+- F4-24 Session süresi dolduğunda kullanıcıyı güvenli biçimde dışarı alma akışı tanımlanacak.
+- F4-25 RLS ile API seviyesindeki yetki kontrolü birlikte test edilecek.
+- F4-26 Yetkisiz bucket yükleme girişimleri denenerek kapalı olduğu doğrulanacak.
+- F4-27 Güvenlik varsayımları proje dokümantasyonunda toplanacak.
+- F4-28 Faz sonunda auth için küçük bir tehdit modeli çıkarılacak.
+- F4-DoD-01 Kayıt, giriş ve çıkış akışları uçtan uca çalışmalı.
+- F4-DoD-02 Korunan kaynaklara izinsiz erişim engellenmeli.
+- F4-DoD-03 Rate limit ve giriş doğrulama etkin olmalı.
+- F4-DoD-04 Güvenlik açıkları bilinen temel senaryolarda görünmemeli.
+- F4-DoD-05 Faz 5'te modüller güvenli kullanıcı bağlamıyla geliştirilebilir olmalı.
+
+## 15. Faz 5 - Ortak Backend Omurgası
+- F5-Amaç API katmanını modüler, test edilebilir ve genişletilebilir hale getirmek.
+- F5-Neden Şimdi İş modülleri ortak hata, log ve doğrulama omurgası üzerinde yükselmelidir.
+- F5-Girdi Faz 4 auth ve güvenlik altyapısı.
+- F5-Çıktı Express modül iskeleti, middleware zinciri ve ortak servis kalıpları.
+- F5-Bağımlılık Faz 4 tamamlanmış olmalı.
+- F5-Risk Hızlı geliştirme uğruna spagetti route dosyaları oluşması.
+- F5-Kalite Kapısı Ortak hata modeli ve modül sınırları netleşmeden iş modüllerine geçilmeyecek.
+- F5-Standart-01 Her backend modülü route, service ve repository dosyaları yanında kendi `config` dosyasına sahip olacaktır.
+- F5-Standart-02 Controller ve service katmanında gereksiz yardımcı soyutlamalar açılmayacak; kısa ve okunabilir akış tercih edilecektir.
+- F5-01 Express uygulaması katmanlı modül yapısıyla ayrıştırılacak.
+- F5-02 Route, controller, service ve repository ayrımı net kurulacak.
+- F5-03 Ortak hata sınıfları tanımlanacak.
+- F5-04 Merkezi hata yakalayıcı middleware oluşturulacak.
+- F5-05 Request id üreten middleware eklenecek.
+- F5-06 Yapılandırılmış log formatı belirlenecek.
+- F5-07 Girdi doğrulama katmanı ortak kalıp haline getirilecek.
+- F5-08 Yetki kontrolü için tekrar kullanılabilir yardımcı yapılar hazırlanacak.
+- F5-09 Başarı yanıtları ve hata yanıtları için tek tip sözleşme tanımlanacak.
+- F5-10 Sağlık kontrolü endpoint'i eklenecek.
+- F5-11 Hazırlık kontrolü için readiness endpoint'i tasarlanacak.
+- F5-12 Çevre ayarları için merkezi config modülü oluşturulacak.
+- F5-13 Hatalı environment durumunda uygulamanın fail-fast davranması sağlanacak.
+- F5-14 Ortak tarih ve zaman yardımcıları tek yerde toplanacak.
+- F5-15 Dosya sınırı ve içerik tipi yardımcıları ortaklaştırılacak.
+- F5-16 Supabase client üretimi kullanıcı bağlamı ve servis bağlamı diye ikiye ayrılacak.
+- F5-17 Repository katmanında ham sorgular kontrolsüz dağılmayacak.
+- F5-18 İş kuralları service katmanında tutulacak.
+- F5-19 Controller'lar ince, deterministik ve yan etkisi sınırlı kalacak.
+- F5-20 Açık API veya eşdeğer endpoint dokümantasyonu için temel yapı hazırlanacak.
+- F5-21 Testlerde mocklanabilir bağımlılık arayüzleri tanımlanacak.
+- F5-22 Zaman bağımlı akışlar için saat sağlayıcı soyutlaması düşünülecek.
+- F5-23 Dosya yükleme servisleri ile iş servisleri ayrıştırılacak.
+- F5-24 Ortak hata kodları listesi hazırlanacak.
+- F5-25 Geliştirme ve üretim log seviyeleri ayrıştırılacak.
+- F5-26 Hata izleme servisi entegrasyonu için kanca noktaları hazırlanacak.
+- F5-27 Modül sınırlarını anlatan kısa backend rehberi yazılacak.
+- F5-28 Faz sonunda örnek bir modül üzerinden kalıp doğrulanacak.
+- F5-DoD-01 Yeni bir iş modülü eklemek için tekrar kullanılabilir net bir backend kalıbı olmalı.
+- F5-DoD-02 Hata ve log yönetimi merkezi çalışmalı.
+- F5-DoD-03 Konfigürasyon eksikse uygulama kontrollü biçimde durmalı.
+- F5-DoD-04 Auth bağlamı tüm korunan uçlara taşınabiliyor olmalı.
+- F5-DoD-05 Faz 6 ve sonrası iş modülleri bu omurgaya güvenebilmelidir.
+
+## 16. Faz 6 - Ön Yüz Temeli ve Tasarım Sistemi
+- F6-Amaç Uygulamanın arayüz omurgasını, ortak bileşenlerini ve veri istemci modelini kurmak.
+- F6-Neden Şimdi İş modülleri tutarlı bir UI altyapısı olmadan dağınık gelişir.
+- F6-Girdi Faz 2 repo yapısı ve Faz 5 backend omurgası.
+- F6-Çıktı Temel layout, route yapısı, form sistemi, veri istemcisi ve ortak UI kit.
+- F6-Bağımlılık Faz 5 tamamlanmış olmalı.
+- F6-Risk Her ekran için farklı state yönetimi ve düzensiz görsel dil.
+- F6-Kalite Kapısı Temel shell ve veri erişim iskeleti oturmadan ürün modüllerine geçilmeyecek.
+- F6-Standart-01 Her frontend feature kendi `config` dosyasında placeholder, limit ve davranış eşiklerini tutacaktır.
+- F6-Standart-02 Bileşenlerde yalnızca gerekli yerde kısa Türkçe yorum yazılacak; karmaşıklık arttıran aşırı soyut UI katmanlarından kaçınılacaktır.
+- F6-01 Next.js App Router klasör yapısı belirlenecek.
+- F6-02 Kamu ve korunan rota grupları ayrılacak.
+- F6-03 Global layout ve temel navigasyon kurgulanacak.
+- F6-04 Tasarım token'ları renk, tipografi, boşluk ve köşe yarıçapı seviyesinde tanımlanacak.
+- F6-05 Ortak buton, input, textarea ve dialog bileşenleri hazırlanacak.
+- F6-06 Form hata gösterim standardı belirlenecek.
+- F6-07 React Hook Form entegrasyon kalıbı oluşturulacak.
+- F6-08 İstemci doğrulama şemaları backend şemalarıyla mümkün olduğunca eşlenecek.
+- F6-09 TanStack Query istemcisi ve temel query key stratejisi yazılacak.
+- F6-10 Global hata sınırı ve hata ekranı oluşturulacak.
+- F6-11 Loading skeleton kalıpları hazırlanacak.
+- F6-12 Toast veya bildirim geri bildirimi sistemi kurulacak.
+- F6-13 Boş durum ekranı standardı oluşturulacak.
+- F6-14 Yetkisiz rota erişimi için kullanıcı dostu yönlendirme yazılacak.
+- F6-15 Mobil, tablet ve masaüstü kırılımları tanımlanacak.
+- F6-16 Erişilebilirlik için odak yönetimi ve klavye gezilebilirliği dikkate alınacak.
+- F6-17 Koyu ve açık tema kararının ilk sürüm için gerekip gerekmediği netleştirilecek.
+- F6-18 Kod bloğu önizleme bileşeni için ortak render stratejisi kurulacak.
+- F6-19 Görsel yükleme bileşeni için ön yüz kabuğu hazırlanacak.
+- F6-20 Route bazlı metadata ve sayfa başlık stratejisi tanımlanacak.
+- F6-21 Auth durumunu sağlayan istemci ve sunucu yardımcıları hazırlanacak.
+- F6-22 Ön yüzde servis erişimi doğrudan dağılmayacak; hook veya API istemcisi kalıbı tanımlanacak.
+- F6-23 Hata mesajları teknik ayrıntıyı kullanıcıya sızdırmayacak biçimde eşlenecek.
+- F6-24 Tasarım rehberi için kısa kullanım notu yazılacak.
+- F6-25 İlk kritik sayfalar için wireframe'den gerçek iskelete geçilecek.
+- F6-26 Ana navigasyon bilgi mimarisi kesinleştirilecek.
+- F6-27 Responsive test senaryoları temel düzeyde hazırlanacak.
+- F6-28 Faz sonunda boş ama çalışır uygulama shell'i gösterilebilir olacak.
+- F6-DoD-01 Ön yüzde tutarlı bileşen ve veri erişim kalıbı bulunmalı.
+- F6-DoD-02 Korunan rota kabuğu çalışmalı.
+- F6-DoD-03 Form, hata, loading ve boş durum desenleri hazır olmalı.
+- F6-DoD-04 Mobil ve masaüstü temel navigasyon kırılmamalı.
+- F6-DoD-05 Faz 7 ürün ekranları bu temel üstüne inşa edilebilir olmalı.
+
+## 17. Faz 7 - Profil Yönetimi ve Sosyal Ağ Temeli
+- F7-Amaç Kullanıcı profil akışlarını ve takip ilişkilerini çalışan ürün modülüne dönüştürmek.
+- F7-Neden Şimdi Feed ve içerik akışının anlamlı olması için sosyal grafik önce kurulmalıdır.
+- F7-Girdi Faz 3 veri modeli, Faz 4 auth ve Faz 6 ön yüz omurgası.
+- F7-Çıktı Profil görüntüleme, düzenleme, avatar ve follow akışları.
+- F7-Bağımlılık Faz 6 tamamlanmış olmalı.
+- F7-Risk Sayaç tutarsızlığı ve yetkisiz profil düzenleme.
+- F7-Kalite Kapısı Takip ilişkisi ve profil sahipliği hatasız doğrulanmadan Faz 8'e geçilmeyecek.
+- F7-Standart-01 Biyografi limiti, beceri etiketi sayısı, avatar sınırı ve takip davranış eşikleri profil modülünün config dosyasında toplanacaktır.
+- F7-Standart-02 Profil ve takip akışında kritik iş kuralları kısa Türkçe yorumlarla açıklanacak, ancak kod gereksiz uzatılmayacaktır.
+- F7-01 Kendi profilini görüntüleme ekranı geliştirilecek.
+- F7-02 Başka kullanıcının profilini görüntüleme ekranı geliştirilecek.
+- F7-03 Profil düzenleme formu oluşturulacak.
+- F7-04 Biyografi alanı için maksimum uzunluk kontrolü uygulanacak.
+- F7-05 Beceri etiketi giriş modeli belirlenecek.
+- F7-06 Beceri etiketi üst sınırı uygulanacak.
+- F7-07 Avatar yükleme akışı storage politikalarıyla uyumlu kurulacak.
+- F7-08 Avatar güncelleme sonrası ön yüz cache invalidation akışı tanımlanacak.
+- F7-09 Takip et butonu yalnızca uygun durumda aktif olacak.
+- F7-10 Kişinin kendini takip etmesi hem UI hem veri katmanında engellenecek.
+- F7-11 Takipten çıkma akışı güvenli ve idempotent yapılacak.
+- F7-12 Takipçi ve takip edilen sayaçları tutarlı biçimde ekrana yansıtılacak.
+- F7-13 Profil sayfasında kullanıcının post listesi için alan açılacak.
+- F7-14 Profil sahibi olmayan kullanıcının düzenleme erişimi reddedilecek.
+- F7-15 Profil bulunamadı durumları kullanıcı dostu ele alınacak.
+- F7-16 Yeni kayıt olan kullanıcı için boş profil akışı doğrulanacak.
+- F7-17 İlk kez profil tamamlama deneyimi basitleştirilecek.
+- F7-18 Follow API uçları ve ön yüz hook'ları netleştirilecek.
+- F7-19 Follow işlemi sonrası feed bağımlılıkları düşünülerek event veya invalidation tasarlanacak.
+- F7-20 Avatar dosya tipi ve boyut doğrulaması istemci ve sunucuda uygulanacak.
+- F7-21 Profil güncelleme audit alanları gerekiyorsa eklenecek.
+- F7-22 Takip ilişkisinin tekrar kayıt üretmediği test edilecek.
+- F7-23 Profil görüntüleme API'si gereksiz veri sızdırmayacak şekilde sınırlandırılacak.
+- F7-24 Uç durum olarak silinmiş veya eksik avatar senaryoları yönetilecek.
+- F7-25 Profil sayfasının mobil görünümü doğrulanacak.
+- F7-26 Profil modülü için entegrasyon testleri yazılacak.
+- F7-27 Yetki, doğrulama ve sayaç akışları test raporuna işlenecek.
+- F7-28 Faz sonunda bir kullanıcı diğerini takip edip profili güvenli biçimde güncelleyebilmelidir.
+- F7-DoD-01 Profil bilgisi güvenli şekilde okunup güncellenebilmeli.
+- F7-DoD-02 Takip ve takipten çıkma veri tutarlılığıyla çalışmalı.
+- F7-DoD-03 Sayaçlar gecikmeli de olsa tutarsız kalmamalı.
+- F7-DoD-04 Avatar akışı kırık bağlantı üretmemeli.
+- F7-DoD-05 Faz 8 içerik modülü sosyal grafik üzerine oturabilir hale gelmeli.
+
+## 18. Faz 8 - İçerik Oluşturma ve Gönderi Yaşam Döngüsü
+- F8-Amaç Metin, kod ve görsel destekli post oluşturma akışını güvenilir biçimde kurmak.
+- F8-Neden Şimdi Feed kurulmadan önce içerik üretim mekanizmasının doğru ve güvenli olması gerekir.
+- F8-Girdi Faz 7 sosyal grafik ve Faz 6 ön yüz altyapısı.
+- F8-Çıktı Post oluşturma, doğrulama, önizleme ve silme akışları.
+- F8-Bağımlılık Faz 7 tamamlanmış olmalı.
+- F8-Risk XSS, hatalı post tipleri ve kullanıcı deneyimini bozan karmaşık oluşturma formu.
+- F8-Kalite Kapısı Post oluşturma ve silme akışı istikrarlı olmadan Faz 9 feed'e geçilmeyecek.
+- F8-Standart-01 Post tipleri, içerik uzunlukları, desteklenen diller ve medya koşulları içerik modülünün config dosyasında tutulacaktır.
+- F8-Standart-02 İçerik oluşturma akışında sade form ve sade servis mantığı tercih edilecek; kritik sanitize kararları Türkçe yorumla desteklenecektir.
+- F8-01 Gönderi oluşturma ekranı veya bileşeni tasarlanacak.
+- F8-02 Post tipleri için sade ama net kullanıcı akışı belirlenecek.
+- F8-03 Metin postu için içerik uzunluk sınırları uygulanacak.
+- F8-04 Kod postu için dil seçimi alanı netleştirilecek.
+- F8-05 Kod postunda tek bir highlight altyapısı kullanılacak.
+- F8-06 Görsel postta medya zorunlu mu opsiyonel mi kuralı açıklaştırılacak.
+- F8-07 Gönderi oluşturma API sözleşmesi belirlenecek.
+- F8-08 İçerik alanları istemci ve sunucu tarafında ayrı ayrı doğrulanacak.
+- F8-09 Metin ve kod içeriği güvenli render için sanitize edilecek.
+- F8-10 Post oluşturma sırasında yükleme durumu kullanıcıya açık gösterilecek.
+- F8-11 Başarısız medya yüklemesinde yarım post oluşumu engellenecek.
+- F8-12 Post oluşturma başarılı olduğunda feed cache güncelleme stratejisi belirlenecek.
+- F8-13 Kullanıcının kendi postunu silme akışı kurulacak.
+- F8-14 Başkasının postunu silme girişimi yetki hatası üretmeli.
+- F8-15 Kod bloğu önizlemesinde performans bozucu ağır editörlerden kaçınılacak.
+- F8-16 İlk sürüm için tam gelişmiş kod editörü yerine kontrollü metin alanı tercih edilecek.
+- F8-17 İçerik oluşturmada otomatik kaydetme gerekip gerekmediği değerlendirilecek.
+- F8-18 İlk sürümde taslak kaydetme kapsam dışı ise açıkça not edilecek.
+- F8-19 Görsel seçili ama içerik boş senaryosu ürün kuralına göre ele alınacak.
+- F8-20 Tamamen boş post gönderimi engellenecek.
+- F8-21 Post tipine göre gerekli alanlar zorunlu tutulacak.
+- F8-22 Oluşturma sonrası kullanıcı uygun başarı geri bildirimi alacak.
+- F8-23 Hata mesajları ağ, doğrulama ve yetki kaynaklarına göre ayrıştırılacak.
+- F8-24 İçerik oluşturma bileşenleri mobil cihazlarda kullanılabilir kalacak.
+- F8-25 Post modülü için entegrasyon testleri yazılacak.
+- F8-26 Güvenlik testlerinde script enjekte etmeye çalışan örnek içerikler denenecek.
+- F8-27 Veri modelinin post tipleriyle uyumu tekrar kontrol edilecek.
+- F8-28 Faz sonunda kullanıcı güvenli biçimde farklı türlerde post oluşturabilmelidir.
+- F8-DoD-01 Metin, kod ve görsel odaklı post akışları çalışmalı.
+- F8-DoD-02 Post silme sahiplik kontrolüyle çalışmalı.
+- F8-DoD-03 XSS benzeri temel içerik riskleri azaltılmış olmalı.
+- F8-DoD-04 Kullanıcı yarım veya bozuk post deneyimi yaşamamalı.
+- F8-DoD-05 Faz 9 feed modülü gerçek içeriklerle test edilebilir olmalı.
+
+## 19. Faz 9 - Feed, Sorgu Tasarımı ve Sonsuz Kaydırma
+- F9-Amaç Takip ilişkisine dayalı ana akışın performanslı ve doğru çalışmasını sağlamak.
+- F9-Neden Şimdi Uygulamanın merkez deneyimi feed olduğu için içerik sonrası en kritik modül budur.
+- F9-Girdi Faz 7 follow ilişkileri ve Faz 8 post akışları.
+- F9-Çıktı Takip odaklı feed sorgusu, cursor pagination ve ön yüzde infinite scroll.
+- F9-Bağımlılık Faz 8 tamamlanmış olmalı.
+- F9-Risk Büyük veriyle sorguların yavaşlaması ve yanlış kullanıcıların içeriklerinin görünmesi.
+- F9-Kalite Kapısı Feed doğruluğu ve temel performans testi geçmeden Faz 10'a geçilmeyecek.
+- F9-Standart-01 Sayfa boyutu, preload sınırları ve cache eşikleri feed modülünün config dosyasında yönetilecektir.
+- F9-Standart-02 Feed sorgu akışı gereksiz soyutlama olmadan kurulacak; sorgu kararları kısa Türkçe açıklamalarla okunabilir kılınacaktır.
+- F9-01 Ana feed için veri erişim sözleşmesi netleştirilecek.
+- F9-02 Feed sadece takip edilen kullanıcıların postlarını döndürecek şekilde tasarlanacak.
+- F9-03 Cursor tabanlı sayfalama resmi standart olarak belirlenecek.
+- F9-04 Sayfa başına kayıt sayısı başlangıçta 20 olarak sabitlenecek.
+- F9-05 Cursor alanı olarak tarih ve benzersiz id kombinasyonu değerlendirilecek.
+- F9-06 Feed sorgusu için en uygun SQL yaklaşımı test edilecek.
+- F9-07 `posts` ve `follows` arasındaki join stratejisi performans açısından doğrulanacak.
+- F9-08 Gerekirse view veya RPC fonksiyonu kullanım kararı yazılacak.
+- F9-09 Feed boş olduğunda kullanıcıyı yönlendiren tasarım hazırlanacak.
+- F9-10 İlk yüklemede skeleton deneyimi uygulanacak.
+- F9-11 Sonsuz kaydırma için intersection observer tabanlı yaklaşım kullanılacak.
+- F9-12 Aynı verinin iki kez ekrana düşmesi engellenecek.
+- F9-13 Takipten çıktıktan sonra ilgili kullanıcının içerikleri feed'den temizlenmeli.
+- F9-14 Yeni post oluşturulduğunda feed invalidation stratejisi net olacak.
+- F9-15 Feed kartı bileşeni standartlaştırılacak.
+- F9-16 Post sahibinin temel profil verisi verimli biçimde dahil edilecek.
+- F9-17 Yorum ve beğeni sayıları için ilk yük yaklaşımı belirlenecek.
+- F9-18 Feed sorgularında N+1 davranışı önlenecek.
+- F9-19 Hata durumunda yeniden dene akışı kullanıcıya sunulacak.
+- F9-20 Mobil ağlarda aşırı istek üretimini sınırlayacak istemci kontrolleri eklenecek.
+- F9-21 Feed performansı örnek veri setiyle ölçülecek.
+- F9-22 Sorgu planı incelenerek gerekirse indeksler güncellenecek.
+- F9-23 Post silme sonrası feed tutarlılığı kontrol edilecek.
+- F9-24 Kullanıcı kendi postunu feed içinde doğru görmeli.
+- F9-25 Yeni kullanıcı için feed boşken ürün dili motive edici ama yanıltıcı olmayan şekilde yazılacak.
+- F9-26 Feed modülü için entegrasyon ve performans testleri yazılacak.
+- F9-27 Ölçülen darboğazlar belgeye işlenecek.
+- F9-28 Faz sonunda kullanıcı takip ettiği kişilerin içeriklerini akıcı biçimde görebilmelidir.
+- F9-DoD-01 Yanlış kullanıcıların postları feed'e düşmemeli.
+- F9-DoD-02 Pagination tekrar veya atlama üretmemeli.
+- F9-DoD-03 İlk anlamlı performans hedefleri yakalanmalı.
+- F9-DoD-04 Boş durum, hata durumu ve yüklenme durumu iyi yönetilmeli.
+- F9-DoD-05 Faz 10 etkileşim modülü bu kart yapısı üzerine bağlanabilir olmalı.
+
+## 20. Faz 10 - Medya, Beğeni ve Yorum Etkileşimleri
+- F10-Amaç İçeriğe bağlı medya ve etkileşim katmanını güvenli ve akıcı hale getirmek.
+- F10-Neden Şimdi Feed çalışmadan etkileşimlerin ürün içindeki gerçek etkisi görülemez.
+- F10-Girdi Faz 8 post ve Faz 9 feed modülü.
+- F10-Çıktı Görsel yükleme hattı, like/unlike, yorum ekleme ve sayaç güncellemeleri.
+- F10-Bağımlılık Faz 9 tamamlanmış olmalı.
+- F10-Risk Depolama maliyeti, yarım yükleme, sayaç tutarsızlığı ve gereksiz gerçek zaman karmaşıklığı.
+- F10-Kalite Kapısı Görsel yükleme ve idempotent etkileşimler doğrulanmadan Faz 11'e geçilmeyecek.
+- F10-Standart-01 Dosya boyutu, mime type, yorum limiti ve optimistic update eşikleri medya-etkileşim config dosyasında tutulacaktır.
+- F10-Standart-02 Etkileşim akışlarında yalnızca ihtiyacı karşılayan kısa çözüm tercih edilecek; atomiklik ve geri alma noktaları Türkçe yorumlarla işaretlenecektir.
+- F10-01 Avatar ve post medyası için ayrı boyut kuralları netleştirilecek.
+- F10-02 İstemci tarafı görsel sıkıştırma kütüphanesi seçilecek.
+- F10-03 2 MB üst sınırı istemci tarafında uygulanacak.
+- F10-04 Aynı sınır sunucu tarafında da doğrulanacak.
+- F10-05 Kabul edilen mime type listesi oluşturulacak.
+- F10-06 Storage yükleme hatalarında kullanıcıya net geri bildirim verilecek.
+- F10-07 Yarım başarı senaryoları için temizleme stratejisi belirlenecek.
+- F10-08 Like işlemi tek uçtan idempotent toggle mantığıyla çalışacak.
+- F10-09 Aynı kullanıcının aynı postu iki kez beğenmesi fiziksel olarak engellenecek.
+- F10-10 Yorum ekleme için içerik doğrulama uygulanacak.
+- F10-11 Yorum uzunluk sınırı tanımlanacak.
+- F10-12 Yorumlar ekranda kronolojik ve tutarlı gösterilecek.
+- F10-13 Beğeni sayısı ve yorum sayısı için hesaplama yaklaşımı seçilecek.
+- F10-14 Gerçek zamanlı sayaç güncellemesi ilk önce zorunlu değil, ikincil iyileştirme olarak ele alınacak.
+- F10-15 Önce doğruluk, sonra anlık güncelleme eklenecek.
+- F10-16 Feed kartı üstünde etkileşim çubuğu standardize edilecek.
+- F10-17 Yorum kutusu açık ve kapalı durumları kullanıcı deneyimine göre tasarlanacak.
+- F10-18 Etkileşim sonrası query invalidation veya optimistic update stratejisi belirlenecek.
+- F10-19 Görsel yükleme sırasında ilerleme göstergesi olup olmayacağına karar verilecek.
+- F10-20 Public URL veya signed URL tercihi güvenlik ve süre dengesine göre netleştirilecek.
+- F10-21 İlk sürüm için gereksiz karmaşıklık yaratmayan medya politikası seçilecek.
+- F10-22 Başarısız ağ koşullarında yorum veya like işlemi uygun geri alma davranışı göstermeli.
+- F10-23 Yorum sahipliği ve görünürlüğü RLS ile doğrulanacak.
+- F10-24 Görseli olmayan postların etkileşim akışları ayrı test edilecek.
+- F10-25 Medya bucket temizliği ve yetki kuralları gözden geçirilecek.
+- F10-26 Etkileşim modülü için güvenlik ve entegrasyon testleri yazılacak.
+- F10-27 Ücretsiz plan sınırları izlenecek ve optimizasyon notları eklenecek.
+- F10-28 Faz sonunda kullanıcı güvenli biçimde görsel ekleyip etkileşim kurabilmelidir.
+- F10-DoD-01 Görsel yükleme yarım veya bozuk kayıt üretmemeli.
+- F10-DoD-02 Like işlemi idempotent ve hızlı çalışmalı.
+- F10-DoD-03 Yorum ekleme akışı doğrulanmış ve güvenli olmalı.
+- F10-DoD-04 Sayaçlar tutarlı kalmalı.
+- F10-DoD-05 Faz 11 mesajlaşma dışındaki tüm sosyal çekirdek tamamlanmış olmalı.
+
+## 21. Faz 11 - Gerçek Zamanlı Mesajlaşma
+- F11-Amaç Birebir mesajlaşmayı güvenli, tutarlı ve dayanıklı şekilde kurmak.
+- F11-Neden Şimdi DM modülü en fazla eşzamanlılık ve durum yönetimi zorluğu taşıyan alandır.
+- F11-Girdi Faz 4 auth, Faz 5 backend, Faz 6 ön yüz temeli ve Faz 3 mesaj veri modeli.
+- F11-Çıktı Sohbet listesi, mesaj geçmişi, canlı iletim, yeniden bağlanma ve okundu durumu.
+- F11-Bağımlılık Faz 10 tamamlanmış olmalı.
+- F11-Risk Yetkisiz mesaj erişimi, kopan bağlantılar ve kayıp mesaj hissi.
+- F11-Kalite Kapısı Kritik mesaj senaryoları güvenilir olmadan Faz 12'ye geçilmeyecek.
+- F11-Standart-01 Yeniden bağlanma süreleri, mesaj uzunluğu ve geçmiş sayfa boyutları mesajlaşma modülünün config dosyasında yer alacaktır.
+- F11-Standart-02 Realtime akışta gereksiz karmaşık durum makineleri kurulmayacak; kritik kanal ve senkronizasyon kararları kısa Türkçe yorumla açıklanacaktır.
+- F11-01 Mesajlaşma için 1'e 1 konuşma sınırı ilk sürümde netleştirilecek.
+- F11-02 Konuşma listesi sorgusunun veri modeli tasarlanacak.
+- F11-03 Sohbet ekranı temel layout'u hazırlanacak.
+- F11-04 Mesaj geçmişi GET uçları sayfalı veya limitli çalışacak biçimde belirlenecek.
+- F11-05 Yeni mesaj gönderme akışı API ve realtime arasında tutarlı kurgulanacak.
+- F11-06 Gönderim sırasında mesaj durumu `sending` olarak izlenebilecek.
+- F11-07 Başarılı iletim sonrası durum `sent` olarak güncellenecek.
+- F11-08 Hata halinde kullanıcıya yeniden deneme imkanı sunulacak.
+- F11-09 Bağlantı kopunca kullanıcı durumdan haberdar edilecek.
+- F11-10 Yeniden bağlanma stratejisi üstel geri çekilme ile uygulanacak.
+- F11-11 Gereksiz sonsuz yeniden bağlanma döngüleri sınırlanacak.
+- F11-12 Kullanıcı sadece kendisinin taraf olduğu mesajları okuyabilmeli.
+- F11-13 Mesaj içerik uzunluğu sınırı istemci ve sunucuda uygulanacak.
+- F11-14 Okundu bilgisi için iş kuralı netleştirilecek.
+- F11-15 Mesaj zaman damgaları tek zaman kaynağından üretilecek.
+- F11-16 Tarih ayırıcıları ve mesaj gruplayıcıları arayüzde düşünülerek uygulanacak.
+- F11-17 Sohbet açıldığında geçmiş yükleme ve yeni mesaj aboneliği birlikte çalışacak.
+- F11-18 Aynı mesajın çift görünmesi engellenecek.
+- F11-19 Çevrimdışı kalıp geri dönen kullanıcı için state toparlama akışı yazılacak.
+- F11-20 DM ekranı mobil kullanım için optimize edilecek.
+- F11-21 Yetkisiz kullanıcıyla konuşma başlatma kuralları netleştirilecek.
+- F11-22 Mesajların sıralama tutarlılığı saat kayması riskine karşı kontrol edilecek.
+- F11-23 Realtime kanalların yaşam döngüsü ve temizlenmesi doğru yönetilecek.
+- F11-24 Gerekli ise mesaj okunma güncellemesi ayrı uç veya güvenli trigger ile yapılacak.
+- F11-25 50 eşzamanlı kullanıcı benzetimiyle temel yük testi uygulanacak.
+- F11-26 Güvenlik testinde mesaj URL veya query üzerinden başka kullanıcı verisi okunamadığı doğrulanacak.
+- F11-27 Hata ve kopma senaryoları test raporuna işlenecek.
+- F11-28 Faz sonunda kullanıcı güvenli biçimde DM gönderebilip okuyabilmelidir.
+- F11-DoD-01 Mesajlar sadece ilgili iki kullanıcıya görünmeli.
+- F11-DoD-02 Bağlantı kopmaları kullanıcı deneyimini tamamen bozmamalı.
+- F11-DoD-03 Çift mesaj ve kayıp mesaj hissi kabul edilemez seviyede olmamalı.
+- F11-DoD-04 Okundu ve geçmiş akışları tutarlı çalışmalı.
+- F11-DoD-05 Faz 12 test ve sertleştirme için çalışan bir ürün bütünlüğü oluşmalı.
+
+## 22. Faz 12 - Test, Kalite Güvencesi ve Sertleştirme
+- F12-Amaç Tüm modülleri ayrı ayrı ve uçtan uca güvence altına almak.
+- F12-Neden Şimdi Özellikler tamamlanmadan yapılan testler kısmi olur; tamamlandıktan sonra sistematik sertleştirme gerekir.
+- F12-Girdi Faz 4 ile Faz 11 arasındaki çalışan modüller.
+- F12-Çıktı Birim, entegrasyon, E2E, güvenlik ve performans testleri ile STD girdileri.
+- F12-Bağımlılık Faz 11 tamamlanmış olmalı.
+- F12-Risk Zaman baskısı sebebiyle yalnızca manuel testle yetinmek.
+- F12-Kalite Kapısı Kritik yol testleri yeşil olmadan dağıtıma geçilmeyecek.
+- F12-Standart-01 Test eşikleri, yük profilleri ve smoke kapsamı test config dosyalarında dışarıdan değiştirilebilir halde tutulacaktır.
+- F12-Standart-02 Test kodları da üretim kodu gibi sade tutulacak; senaryo amacı kısa Türkçe yorumlarla belirtilecektir.
+- F12-01 Test stratejisi modül bazında yeniden gözden geçirilecek.
+- F12-02 Birim test yazılması gereken servisler listelenecek.
+- F12-03 Entegrasyon testleri için test veritabanı akışı kurulacak.
+- F12-04 RLS politikaları ayrı güvenlik test senaryolarıyla doğrulanacak.
+- F12-05 Kayıt ve giriş için E2E test yazılacak.
+- F12-06 Profil güncelleme için E2E test yazılacak.
+- F12-07 Takip etme için E2E test yazılacak.
+- F12-08 Post oluşturma için E2E test yazılacak.
+- F12-09 Feed görüntüleme için E2E test yazılacak.
+- F12-10 Like ve yorum için E2E test yazılacak.
+- F12-11 DM akışı için E2E test yazılacak.
+- F12-12 Rate limit davranışı kontrollü test edilecek.
+- F12-13 Yetkisiz API erişimleri negatif testlerle doğrulanacak.
+- F12-14 Dosya boyutu ve mime type doğrulamaları test edilecek.
+- F12-15 XSS benzeri içeriklere karşı render güvenliği kontrol edilecek.
+- F12-16 Performans ölçümleri belirlenen hedeflerle kıyaslanacak.
+- F12-17 Feed sorgularının örnek veri üzerinde sınırları görülecek.
+- F12-18 Mesajlaşma yük testleri tekrarlanacak.
+- F12-19 Hata loglarının okunabilirliği kontrol edilecek.
+- F12-20 Gözlemlenebilirlik olayları gerçekten faydalı mı gözden geçirilecek.
+- F12-21 Geriye dönük regresyon listesi çıkarılacak.
+- F12-22 Tespit edilen hatalar önem derecesine göre sınıflanacak.
+- F12-23 Kırmızı testler kapanmadan yeni özellik eklenmeyecek.
+- F12-24 Manuel keşif testleri kullanıcı gözüyle yapılacak.
+- F12-25 Responsive testleri kritik ekranlarda uygulanacak.
+- F12-26 Tarayıcı uyumluluğu son iki ana sürüm düzeyinde kontrol edilecek.
+- F12-27 STD belgesi için kanıt ve ekran görüntüleri toplanacak.
+- F12-28 Faz sonunda sürüm adayı üretilebilecek kaliteye ulaşılmalıdır.
+- F12-DoD-01 Kritik kullanıcı yolculukları testle korunmuş olmalı.
+- F12-DoD-02 Güvenlik ve yetki açıkları kritik seviyede kalmamalı.
+- F12-DoD-03 Performans hedefleri ölçülmüş olmalı.
+- F12-DoD-04 Hata listesi önceliklendirilmiş ve kapanma planı bulunmalı.
+- F12-DoD-05 Faz 13 dağıtım ve operasyon çalışmaları güvenle başlatılabilmeli.
+
+## 23. Faz 13 - Performans, Dağıtım ve Operasyon Hazırlığı
+- F13-Amaç Uygulamayı yayınlanabilir, izlenebilir ve geri alınabilir hale getirmek.
+- F13-Neden Şimdi Testten geçmeyen sistem yayınlanmamalı; yayın hazırlığı testten sonra gelmelidir.
+- F13-Girdi Faz 12 sürüm adayı.
+- F13-Çıktı Canlı ortamlar, dağıtım akışı, izleme, yedekleme ve rollback planı.
+- F13-Bağımlılık Faz 12 tamamlanmış olmalı.
+- F13-Risk Canlıda çevre değişkeni hataları, görünmeyen performans darboğazları ve geri dönüşsüz dağıtım.
+- F13-Kalite Kapısı Canlı öncesi smoke test ve rollback planı olmadan Faz 14'e geçilmeyecek.
+- F13-Standart-01 Operasyonel eşikler, deploy ayarları ve smoke parametreleri merkezi config ve environment şemalarıyla yönetilecektir.
+- F13-Standart-02 Dağıtım otomasyonu anlaşılır ve kısa tutulacak; operasyonel kararlar Türkçe notlarla bakım kolaylığı sağlayacaktır.
+- F13-01 Üretim ortam değişkenleri güvenli kanallarla tanımlanacak.
+- F13-02 Ön yüz dağıtımı için Vercel projesi yapılandırılacak.
+- F13-03 API dağıtımı için sürekli Node servisi sağlayan platform seçilecek.
+- F13-04 Supabase üretim ayarları son kez gözden geçirilecek.
+- F13-05 CORS üretim alan adlarına göre daraltılacak.
+- F13-06 Güvenlik başlıkları üretim yapılandırmasına eklenecek.
+- F13-07 Log toplama ve hata izleme servisi üretimde etkinleştirilecek.
+- F13-08 Health check uçları dağıtım platformlarına bağlanacak.
+- F13-09 Smoke test senaryoları otomatik veya yarı otomatik hale getirilecek.
+- F13-10 Veritabanı migration dağıtım sırası yazılı hale getirilecek.
+- F13-11 Migration öncesi yedek alma stratejisi belirlenecek.
+- F13-12 Geri dönüş planı adım adım yazılacak.
+- F13-13 CDN ve statik varlık davranışı gözden geçirilecek.
+- F13-14 Görsel optimizasyonlarının üretim etkisi test edilecek.
+- F13-15 Sorgu darboğazı varsa son indeks iyileştirmeleri yapılacak.
+- F13-16 Ücretsiz plan sınırları için izleme tablosu hazırlanacak.
+- F13-17 Aşırı maliyet veya limit aşımı için önleyici eylemler tanımlanacak.
+- F13-18 Mesajlaşma bağlantıları üretim alan adında test edilecek.
+- F13-19 SSL ve WSS doğrulamaları yapılacak.
+- F13-20 Uygulama ilk açılış performansı gerçek ortamda ölçülecek.
+- F13-21 Arka plan hatalarının kullanıcıya yansımama biçimi doğrulanacak.
+- F13-22 Operasyon rehberi yazılacak.
+- F13-23 Olağan hata türleri için hızlı çözüm notları hazırlanacak.
+- F13-24 Yayın sonrası doğrulama checklist'i oluşturulacak.
+- F13-25 İlk canlı sürüm etiketi ve sürüm notu hazırlanacak.
+- F13-26 Üretim loglarında hassas veri sızıntısı olmadığı kontrol edilecek.
+- F13-27 Canlı ortam smoke testi uygulanacak.
+- F13-28 Faz sonunda uygulama canlı ortamda kontrollü biçimde erişilebilir olmalıdır.
+- F13-DoD-01 Web ve API canlı ortama alınmış olmalı.
+- F13-DoD-02 Rollback planı gerçekçi ve yazılı olmalı.
+- F13-DoD-03 Üretim smoke testleri geçmiş olmalı.
+- F13-DoD-04 Gözlemlenebilirlik çalışıyor olmalı.
+- F13-DoD-05 Faz 14 sunum ve teslim belgeleri güncel duruma bağlanabilir olmalı.
+
+## 24. Faz 14 - Raporlama, Sunum ve Teslim Sertifikasyonu
+- F14-Amaç Uygulama çıktısını ders teslimine ve profesyonel sunuma hazır hale getirmek.
+- F14-Neden Şimdi Çalışan sistem tek başına yeterli değildir; anlatılabilir ve savunulabilir olmalıdır.
+- F14-Girdi Faz 13 canlıya alınmış ürün.
+- F14-Çıktı Güncel belgeler, demo senaryosu, sunum materyali ve teslim paketi.
+- F14-Bağımlılık Faz 13 tamamlanmış olmalı.
+- F14-Risk Belgelerin gerçek uygulamayla ayrışması veya demo sırasında beklenmeyen kırılma.
+- F14-Kalite Kapısı Teslim paketi bütünlük kontrolünden geçmeden proje tamamlanmış sayılmayacak.
+- F14-Standart-01 Teslim belgelerinde basit kod yaklaşımı, config yapısı ve Türkçe yorum standardı ayrıca anlatılacaktır.
+- F14-Standart-02 Sunumda tahta üstü değişiklikleri kolaylaştıran `config` disiplini özellikle gösterilecek.
+- F14-01 Uygulanan mimari ile SDD arasındaki farklar son kez gözden geçirilecek.
+- F14-02 Gerekli ise SDD'de güncel mimari düzeltme notları hazırlanacak.
+- F14-03 SRS ile gerçek kapsam uyumu kontrol edilecek.
+- F14-04 SPMP ile fiili çalışma planı arasındaki sapmalar belgelenecek.
+- F14-05 Kurulum ve çalıştırma talimatı sade biçimde yazılacak.
+- F14-06 Ortam değişkenleri açıklaması eklenecek.
+- F14-07 API uçları özet dokümantasyonu hazırlanacak.
+- F14-08 Veritabanı şeması özet diyagramı sunuma hazır hale getirilecek.
+- F14-09 Ana kullanıcı akışları için demo senaryosu yazılacak.
+- F14-10 Demo için temiz örnek hesaplar ve veri seti hazırlanacak.
+- F14-11 Sunum sırasında gösterilecek kritik ekranlar seçilecek.
+- F14-12 Sunum akışı sorunsuz olması için prova yapılacak.
+- F14-13 Canlı demo başarısız olursa kullanılacak yedek akış hazırlanacak.
+- F14-14 Test sonuçlarının özeti kısa ve ikna edici biçimde çıkarılacak.
+- F14-15 Bilinen sınırlamalar dürüstçe yazılacak.
+- F14-16 Gelecek sürüm önerileri ayrı bölümde toplanacak.
+- F14-17 Güvenlik, performans ve ölçeklenebilirlik anlatısı teknik olarak savunulabilir hale getirilecek.
+- F14-18 Ekip katkı dağılımı net biçimde yazılacak.
+- F14-19 Kod deposu düzeni teslim için temizlenecek.
+- F14-20 README son kez gözden geçirilecek.
+- F14-21 Canlı linkler ve yedek bağlantılar doğrulanacak.
+- F14-22 Teslim paketinin dosya bütünlüğü kontrol edilecek.
+- F14-23 Nihai riskler ve teknik borçlar kısa listede özetlenecek.
+- F14-24 Sunum soruları için muhtemel teknik cevaplar hazırlanacak.
+- F14-25 Ürün vizyonu ile gerçekleşen kapsam arasındaki denge anlatılacak.
+- F14-26 Kapanış sonrası bakım veya geliştirme önerileri listelenecek.
+- F14-27 Nihai kalite kontrol toplantısı yapılacak.
+- F14-28 Faz sonunda proje hem teknik hem sunumsal olarak teslime hazır olmalıdır.
+- F14-DoD-01 Belgeler gerçek uygulamayı yansıtmalı.
+- F14-DoD-02 Demo akışı önceden denenmiş olmalı.
+- F14-DoD-03 Teslim paketinde eksik bağlantı veya eksik dosya olmamalı.
+- F14-DoD-04 Bilinen sınırlamalar gizlenmemeli, açıkça yazılmalı.
+- F14-DoD-05 Proje savunulabilir ve tekrar kurulabilir halde olmalıdır.
+
+## 25. Kodlama ve Mimari Standartlar
+- KS-01 Tüm yeni kod TypeScript strict mod hedefiyle yazılacaktır.
+- KS-02 `any` kullanımı istisna dışı yasak kabul edilecektir.
+- KS-03 Controller katmanı iş kuralı taşımayacaktır.
+- KS-04 İş kuralları service katmanında tutulacaktır.
+- KS-05 Veri erişimi repository veya veri erişim modülünde merkezileştirilecektir.
+- KS-06 Ortak tipler tek bir paylaşılan pakette tutulacaktır.
+- KS-07 Bir iş kuralı iki farklı yerde kopyalanmayacaktır.
+- KS-08 Fonksiyon ve modül isimleri alan dilini yansıtacaktır.
+- KS-09 Yorumlar sadece ne yapıldığını değil neden o kararın verildiğini açıklayacaktır.
+- KS-10 Büyük bileşenler sorumluluklarına göre parçalanacaktır.
+- KS-11 Sunucu ve istemci sınırları Next.js içinde net tutulacaktır.
+- KS-12 Gizli anahtarlar asla istemci koduna sızdırılmayacaktır.
+- KS-13 Ortak hata sınıfları dışında rastgele string tabanlı hata yönetimi yapılmayacaktır.
+- KS-14 Lint uyarıları birikerek normalleşmeye bırakılmayacaktır.
+- KS-15 Her modül için giriş doğrulaması zorunlu kabul edilecektir.
+- KS-16 Test yazılabilirliği tasarımın doğal parçası olacaktır.
+- KS-17 Geniş kapsamlı refactor'lar küçük doğrulanabilir adımlara bölünecektir.
+- KS-18 Her modül, belgelendirilebilir açık bir kamu API'sine sahip olacaktır.
+- KS-19 Teknik borç oluşturacak istisnalar kayıt altına alınacaktır.
+- KS-20 Kod incelemesiz ana dala birleşim yapılmayacaktır.
+- KS-21 Kod, mümkün olan en kısa ve en anlaşılır biçimde yazılacak; gereksiz pattern ve gereksiz yardımcı soyutlama eklenmeyecektir.
+- KS-22 Her ana modül veya feature içinde zorunlu bir `config` dosyası bulunacaktır.
+- KS-23 Değişebilir limitler, süreler, sabit metinler, tekrar deneme sayıları ve benzeri değerler doğrudan iş koduna gömülmeyecektir.
+- KS-24 `config` dosyaları okunabilir ve kısa tutulacak; bir değeri değiştirmek için çok katmanlı arama gerekmeyecektir.
+- KS-25 Türkçe yorum satırları kısa tutulacak ve yalnızca faydalı oldukları noktalarda kullanılacaktır.
+- KS-26 Yorumlar kodun ne yaptığını tekrarlamak yerine ne, neden ve nasıl ekseninde kararın özünü anlatacaktır.
+- KS-27 Uzun açıklama gerekiyorsa kod karmaşıktır varsayımıyla önce tasarım sadeleştirilecek, sonra gerekiyorsa yorum eklenecektir.
+- KS-28 Kod incelemesinde basitlik, config kullanımı ve yorum kalitesi bağımsız kontrol maddeleri olacaktır.
+
+## 26. Güvenlik Taban Çizgisi
+- GTC-01 Tüm istemci-sunucu trafiği yalnızca HTTPS üzerinden kabul edilecektir.
+- GTC-02 Gerçek zamanlı trafik yalnızca WSS üzerinden kullanılacaktır.
+- GTC-03 Auth token'ları `localStorage` yerine daha güvenli oturum yaklaşımıyla yönetilecektir.
+- GTC-04 Service role anahtarı sadece sunucu tarafı kapalı bağlamda bulunacaktır.
+- GTC-05 Her tablo için RLS politikası yazılmadan tablo üretime açılmayacaktır.
+- GTC-06 Yetkisiz istekler varsayılan olarak reddedilecektir.
+- GTC-07 Girdi doğrulaması istemci ve sunucu katmanlarında ayrı ayrı yapılacaktır.
+- GTC-08 Uzunluk, tip ve biçim sınırları sadece UI ile bırakılmayacaktır.
+- GTC-09 İçerik render eden alanlarda XSS riskine karşı sanitize işlemi uygulanacaktır.
+- GTC-10 SQL enjeksiyonuna karşı yalnızca güvenli sorgu yolları kullanılacaktır.
+- GTC-11 Rate limiting özellikle auth uçlarında zorunlu olacaktır.
+- GTC-12 Dosya yüklemede mime type, boyut ve uzantı kısıtları birlikte uygulanacaktır.
+- GTC-13 Bucket yazma yetkileri istemcide herkese açık bırakılmayacaktır.
+- GTC-14 Hata mesajları saldırgana iç mimari bilgi vermeyecek şekilde sade tutulacaktır.
+- GTC-15 Loglarda şifre, token ve hassas PII tutulmayacaktır.
+- GTC-16 Üretim ortam değişkenleri sadece güvenli dağıtım kanallarında saklanacaktır.
+- GTC-17 CORS en dar gerekli kapsamla tanımlanacaktır.
+- GTC-18 Mesajlar sadece ilgili taraflarca okunabilir olacaktır.
+- GTC-19 Profil güncelleme ve post silme gibi sahiplik akışları negatif testlerle doğrulanacaktır.
+- GTC-20 Güvenlik kararları dokümante edilmeden görünmez varsayım olarak bırakılmayacaktır.
+- GTC-21 Üretimde debug seviyesinde aşırı ayrıntılı hata çıktısı açılmayacaktır.
+- GTC-22 Deneme amaçlı backdoor veya geliştirme kolaylığı sağlayan gizli uçlar bulunmayacaktır.
+- GTC-23 İçerik güvenliği için temel HTTP güvenlik başlıkları etkinleştirilecektir.
+- GTC-24 İhlal durumunda hızlı analiz için request id her log akışında taşınacaktır.
+- GTC-25 Güvenlik, ayrı bir faz değil tüm fazların kabul şartı olacaktır.
+
+## 27. Test Stratejisi
+- TS-01 Test piramidi birim, entegrasyon ve E2E dengesiyle kurulacaktır.
+- TS-02 Service katmanları birim test önceliği taşıyacaktır.
+- TS-03 Auth, follow, feed ve DM modülleri entegrasyon test önceliği taşıyacaktır.
+- TS-04 Kritik kullanıcı yolculukları E2E ile korunacaktır.
+- TS-05 RLS politikaları normal iş testlerinden ayrı güvenlik testi olarak ele alınacaktır.
+- TS-06 Test verisi ile üretim verisi kesin olarak ayrılacaktır.
+- TS-07 Seed verileri deterministik olacaktır.
+- TS-08 Negatif testler, pozitif testler kadar önemli kabul edilecektir.
+- TS-09 Dosya yükleme akışları boyut ve tip ihlaliyle de test edilecektir.
+- TS-10 Feed pagination tekrarlı veri ve atlanan veri açısından test edilecektir.
+- TS-11 Like toggle idempotency testi zorunlu olacaktır.
+- TS-12 Mesajlaşmada çift mesaj ve kayıp mesaj senaryoları özel olarak test edilecektir.
+- TS-13 Performans testleri en az temel hedefleri doğrulayan seviyede yapılacaktır.
+- TS-14 Tarayıcı uyumluluk testi son iki ana sürüm düzeyinde örneklenerek yapılacaktır.
+- TS-15 Responsive testler kritik ekranlarda uygulanacaktır.
+- TS-16 Her hata düzeltmesi mümkünse regresyon testine dönüştürülecektir.
+- TS-17 CI hattında çalışan testler, lokal ortamda da kolayca tekrarlanabilir olmalıdır.
+- TS-18 Testler flaky davranış gösteriyorsa önce test kalitesi düzeltilmelidir.
+- TS-19 Smoke test, canlı dağıtım sonrasında zorunlu olacaktır.
+- TS-20 STD belgesi testlerden bağımsız değil; onların raporlanmış çıktısı olacaktır.
+- TS-21 Başarı kriteri sadece test sayısı değil, risk kapsamasıdır.
+- TS-22 Test süreleri çok uzuyorsa katman bazlı ayrıştırma yapılacaktır.
+- TS-23 Mock kullanımı gerçek bağımlılığı anlamayı gizleyecek seviyeye çıkmamalıdır.
+- TS-24 Testler, mimari kararların doğruluğunu gösterecek veri üretmelidir.
+- TS-25 Test çalışmayan modül bitmiş kabul edilmeyecektir.
+
+## 28. Veri ve Migration Stratejisi
+- VM-01 Veritabanı değişiklikleri yalnızca sürüm kontrollü migration dosyalarıyla yapılacaktır.
+- VM-02 Üretimde elle şema değiştirme alışkanlığına izin verilmeyecektir.
+- VM-03 Migration isimlendirmesi kronolojik ve anlamlı olacaktır.
+- VM-04 Yıkıcı değişiklikler uygulanmadan önce veri etkisi analiz edilecektir.
+- VM-05 Gerekli durumlarda geçişler çok adımlı migration planına bölünecektir.
+- VM-06 Seed verileri test ve demo amacıyla ayrı tutulacaktır.
+- VM-07 Her migration temiz veritabanında baştan uygulanabilir olmalıdır.
+- VM-08 Foreign key ve check constraint'ler ürün kuralını veri katmanına da taşıyacaktır.
+- VM-09 Performans kritik alanlar için indeksler migration içinde tanımlanacaktır.
+- VM-10 Veri sahipliği RLS ile birlikte düşünülerek tasarlanacaktır.
+- VM-11 Audit ihtiyacı olan alanlar erkenden düşünülerek eklenmelidir.
+- VM-12 Şema belgeleri kod tabanından kopuk kalmayacaktır.
+- VM-13 Depolama bucket politikaları da veri mimarisinin parçası kabul edilecektir.
+- VM-14 Test veritabanı kurulum süresi makul seviyede tutulacaktır.
+- VM-15 Şema karmaşıklığı ders projesi kapsamını gereksiz yere aşmayacaktır.
+
+## 29. Performans Stratejisi
+- PS-01 Önce ölçüm, sonra optimizasyon ilkesi uygulanacaktır.
+- PS-02 Feed sorgusu en kritik performans konusu olarak ele alınacaktır.
+- PS-03 Cursor pagination offset tabanlı sayfalamaya tercih edilecektir.
+- PS-04 N+1 veri erişimi tasarım aşamasında engellenecektir.
+- PS-05 Görseller istemci tarafında yükleme öncesi sıkıştırılacaktır.
+- PS-06 Ağ trafiğini azaltmak için gereksiz tekrar istekleri önlenecektir.
+- PS-07 TanStack Query cache ve invalidation stratejisi bilinçli tanımlanacaktır.
+- PS-08 Ağır editör ve gereksiz büyük bağımlılıklar ilk sürümden uzak tutulacaktır.
+- PS-09 Kod bloğu gösterimi, bundle boyutunu patlatmayacak şekilde seçilecektir.
+- PS-10 Görseller lazy loading ile gösterilecektir.
+- PS-11 Üretimde sık kullanılan sorgular için indeks doğrulaması yapılacaktır.
+- PS-12 Mesaj geçmişi sınırsız tek istekte çekilmeyecektir.
+- PS-13 Loglama aşırı gürültülü hale getirilip performansı düşürmeyecektir.
+- PS-14 Sunucu tarafı hata izleme kullanıcı isteğini belirgin biçimde yavaşlatmamalıdır.
+- PS-15 İlk boyama ve etkileşime geçiş süreleri kritik ekranlarda ölçülecektir.
+- PS-16 Boş feed ve hata ekranları dahi hızlı açılmalıdır.
+- PS-17 Faz 12 ve Faz 13'te gerçek ortama yakın verilerle ölçüm tekrarlanacaktır.
+- PS-18 Ücretsiz plan limitleri performans stratejisinin parçası olarak izlenecektir.
+- PS-19 Performans, yalnızca hissiyatla değil sayısal veriyle değerlendirilecektir.
+- PS-20 Gerekli olmayan gerçek zamanlı güncellemeler ilk sürümde zorunlu kılınmayacaktır.
+
+## 30. DevOps ve Gözlemlenebilirlik Stratejisi
+- DG-01 CI hattı lint, test ve build adımlarını zorunlu kılacaktır.
+- DG-02 Başarısız kalite kontrolü olan branch ana dala birleşmeyecektir.
+- DG-03 Ön yüz ve API için ayrı dağıtım hedefleri açıkça tanımlanacaktır.
+- DG-04 Ortam değişkenleri geliştirme, test ve üretim için ayrılacaktır.
+- DG-05 Hata izleme aracı kritik hataları görünür kılacaktır.
+- DG-06 Yapılandırılmış log formatı seçilecektir.
+- DG-07 Her istek request id ile izlenebilir olacaktır.
+- DG-08 Sağlık kontrolleri izleme araçlarıyla entegre çalışacaktır.
+- DG-09 Üretim smoke testleri dağıtım sonrası uygulanacaktır.
+- DG-10 Geri dönüş planı pratik ve yazılı olacaktır.
+- DG-11 Ücretsiz plan limitleri için düzenli kontrol listesi tutulacaktır.
+- DG-12 Uygulama sürümleri etiketli ve notlu olacaktır.
+- DG-13 Migration ve uygulama dağıtımı sırası tutarlı hale getirilecektir.
+- DG-14 Canlı hatalar sessizce kaybolmayacak, izleme sistemine düşecektir.
+- DG-15 Hassas veri loglara yazılmayacaktır.
+- DG-16 Operasyon rehberi ekip dışı birinin de anlayacağı açıklıkta olacaktır.
+- DG-17 Gece yarısı sürprizleri azaltmak için yayın öncesi kontrol listesi bulunacaktır.
+- DG-18 Öğrenci projesi olsa da profesyonel operasyon disiplini hedeflenecektir.
+- DG-19 Maliyet görünürlüğü temel düzeyde tutulacaktır.
+- DG-20 Dağıtım, projenin son günü ilk kez denenmeyecektir.
+
+## 31. Ekip Çalışma Modeli ve Önerilen Sorumluluk Düzeltmesi
+- ECM-01 Raporlardaki rol dağılımı korunacak ancak zaman çizelgesindeki çelişkiler düzeltilerek uygulanacaktır.
+- ECM-02 Kimlik doğrulama ve profil tarafının ana sahipliği Berkay çizgisinde tutulmalıdır.
+- ECM-03 İçerik, feed, medya ve UI yoğun işlerin ana sahipliği Batuhan çizgisinde tutulmalıdır.
+- ECM-04 Gerçek zamanlı iletişim, bağlantı dayanıklılığı ve yük testlerinin ana sahipliği Berat çizgisinde tutulmalıdır.
+- ECM-05 Ortak altyapı, CI ve dokümantasyon işleri tek kişiye yıkılmamalıdır.
+- ECM-06 Her modül için bir ana sahip ve bir destekleyici sahip belirlenmelidir.
+- ECM-07 Mimari kararlar oy çokluğu değil, teknik gerekçeyle alınmalıdır.
+- ECM-08 Haftalık en az bir entegrasyon senkronu yapılmalıdır.
+- ECM-09 Her sprint sonunda küçük demo yapılmalıdır.
+- ECM-10 Kod incelemeleri modül sahibinden bağımsız en az bir kişi tarafından yapılmalıdır.
+- ECM-11 Kritik güvenlik kararlarında çapraz gözden geçirme zorunlu tutulmalıdır.
+- ECM-12 Dokümantasyon sadece yazan kişinin kafasında kalmamalıdır.
+- ECM-13 UI kararı backend gerçeğiyle; backend kararı da UX gereksinimiyle doğrulanmalıdır.
+- ECM-14 Entegrasyon günleri önceden planlanmalıdır.
+- ECM-15 Son hafta birleştirme yerine erken ve sık entegrasyon yapılmalıdır.
+- ECM-16 Hata triage toplantıları kısa ama disiplinli tutulmalıdır.
+- ECM-17 Kimsenin gizli bildiği kritik kurulum adımı kalmamalıdır.
+- ECM-18 Teslimden önce bir kişinin yokluğunda proje çalıştırılabiliyor olmalıdır.
+- ECM-19 Ekip içi iletişim karar kayıtlarına yansıtılmalıdır.
+- ECM-20 Sorumluluk matrisi gerçek iş akışına göre güncel tutulmalıdır.
+- ECM-21 Kod incelemelerinde gereksiz komplekslik ayrıca sorgulanmalıdır.
+- ECM-22 Her ekip üyesi kendi modülünde değişebilir değerleri `config` dosyasında toplamakla sorumlu olmalıdır.
+- ECM-23 Türkçe yorum standardı ekip içinde ortak örneklerle sabitlenmelidir.
+
+## 32. Sprint Bazlı Önerilen Yol Haritası
+- SY-01 Sprint 0 yalnızca kapsam, mimari ve repo hazırlığına ayrılmalıdır.
+- SY-02 Sprint 1 içinde veritabanı şeması, migration ve RLS omurgası tamamlanmalıdır.
+- SY-03 Sprint 2 içinde auth ve güvenlik temeli tamamlanmalıdır.
+- SY-04 Sprint 3 içinde backend ortak katmanları ve ön yüz shell'i çıkarılmalıdır.
+- SY-05 Sprint 4 içinde profil ve follow modülü bitirilmelidir.
+- SY-06 Sprint 5 içinde post oluşturma modülü bitirilmelidir.
+- SY-07 Sprint 6 içinde feed ve pagination modülü bitirilmelidir.
+- SY-08 Sprint 7 içinde medya, like ve yorum modülü tamamlanmalıdır.
+- SY-09 Sprint 8 içinde gerçek zamanlı mesajlaşma tamamlanmalıdır.
+- SY-10 Sprint 9 içinde test, performans ve sertleştirme yapılmalıdır.
+- SY-11 Sprint 10 içinde canlıya alma, demo ve belge sonlandırma yapılmalıdır.
+
+## 33. Sprint 0 Ayrıntısı
+- S0-01 Rapor analizi tamamlanacak.
+- S0-02 Kapsam dışı liste dondurulacak.
+- S0-03 Mimari karar kayıtları yazılacak.
+- S0-04 Monorepo kararı resmileştirilecek.
+- S0-05 Dağıtım topolojisi netleştirilecek.
+- S0-06 Takım sorumluluk matrisi güncellenecek.
+- S0-07 Risk kaydı başlatılacak.
+- S0-08 İlk backlog epikleri açılacak.
+- S0-09 Kabul kriteri şablonu standartlaştırılacak.
+- S0-10 Sprint 1'e geçiş için kapsam onayı alınacak.
+- S0-11 Basit kod, config dosyası ve Türkçe yorum standardı yazılı ekip kuralı haline getirilecek.
+
+## 34. Sprint 1 Ayrıntısı
+- S1-01 Supabase proje kurulumu yapılacak.
+- S1-02 Migration iskeleti oluşturulacak.
+- S1-03 `profiles` tablosu kurulacak.
+- S1-04 `follows` tablosu kurulacak.
+- S1-05 `posts` tablosu kurulacak.
+- S1-06 `likes` tablosu kurulacak.
+- S1-07 `comments` tablosu kurulacak.
+- S1-08 `messages` tablosu kurulacak.
+- S1-09 İndeksler eklenecek.
+- S1-10 Temel RLS iskeleti yazılacak.
+- S1-11 Veritabanı limitleri ile uygulama config değerleri arasındaki harita çıkarılacak.
+
+## 35. Sprint 2 Ayrıntısı
+- S2-01 Register akışı tamamlanacak.
+- S2-02 Login akışı tamamlanacak.
+- S2-03 Logout akışı tamamlanacak.
+- S2-04 Auth middleware tamamlanacak.
+- S2-05 Rate limit eklenecek.
+- S2-06 Input validation standardı kurulacak.
+- S2-07 Session yönetimi netleştirilecek.
+- S2-08 Kamu ve korunan uçlar ayrılacak.
+- S2-09 Güvenlik negatif testleri yazılacak.
+- S2-10 Sprint sonunda auth demosu yapılacak.
+- S2-11 Auth limitleri ve süreleri için merkezi config dosyası oluşturulacak.
+
+## 36. Sprint 3 Ayrıntısı
+- S3-01 Express modül yapısı netleşecek.
+- S3-02 Ortak hata modeli yazılacak.
+- S3-03 Log altyapısı eklenecek.
+- S3-04 Config modülü tamamlanacak.
+- S3-05 Health endpoint eklenecek.
+- S3-06 Web shell kurulacak.
+- S3-07 Ortak UI bileşenleri eklenecek.
+- S3-08 TanStack Query kurulacak.
+- S3-09 Form altyapısı kurulacak.
+- S3-10 Sprint sonunda iskelet ürün ayağa kalkacak.
+- S3-11 Web ve API modül şablonlarına `config.ts` dosyası varsayılan olarak eklenecek.
+
+## 37. Sprint 4 Ayrıntısı
+- S4-01 Profil görüntüleme ekranı yapılacak.
+- S4-02 Profil düzenleme ekranı yapılacak.
+- S4-03 Avatar yükleme akışı eklenecek.
+- S4-04 Beceri etiketleri akışı eklenecek.
+- S4-05 Follow API uçları tamamlanacak.
+- S4-06 Follow butonu UI'ı tamamlanacak.
+- S4-07 Sayaç tutarlılığı test edilecek.
+- S4-08 Profil yetkileri doğrulanacak.
+- S4-09 Responsive kontroller yapılacak.
+- S4-10 Sprint sonunda profil modülü demo verilecek.
+- S4-11 Profil limitleri ve görünüm eşikleri config dosyasına taşınacak.
+
+## 38. Sprint 5 Ayrıntısı
+- S5-01 Post oluşturma bileşeni yapılacak.
+- S5-02 Metin postu akışı tamamlanacak.
+- S5-03 Kod postu akışı tamamlanacak.
+- S5-04 Dil seçimi alanı eklenecek.
+- S5-05 İçerik sanitize akışı eklenecek.
+- S5-06 Post silme akışı eklenecek.
+- S5-07 Başarı ve hata durumları işlenecek.
+- S5-08 Entegrasyon testleri yazılacak.
+- S5-09 Mobil görünüm doğrulanacak.
+- S5-10 Sprint sonunda içerik modülü demo verilecek.
+- S5-11 Post tipleri ve içerik limitleri modül config dosyasında toplanacak.
+
+## 39. Sprint 6 Ayrıntısı
+- S6-01 Feed sorgusu finalize edilecek.
+- S6-02 Cursor pagination eklenecek.
+- S6-03 Infinite scroll eklenecek.
+- S6-04 Feed kartı standardize edilecek.
+- S6-05 Boş durum ekranı yapılacak.
+- S6-06 Feed performansı ölçülecek.
+- S6-07 İndeks gerekirse güncellenecek.
+- S6-08 Cache invalidation netleşecek.
+- S6-09 Negatif senaryolar test edilecek.
+- S6-10 Sprint sonunda akış modülü demo verilecek.
+- S6-11 Feed sayfa boyutu ve eşikler config dosyası üzerinden yönetilecek.
+
+## 40. Sprint 7 Ayrıntısı
+- S7-01 Görsel sıkıştırma entegrasyonu yapılacak.
+- S7-02 Media upload hattı tamamlanacak.
+- S7-03 Like toggle eklenecek.
+- S7-04 Yorum ekleme akışı eklenecek.
+- S7-05 Sayaç güncellemeleri doğrulanacak.
+- S7-06 Dosya sınır testleri yazılacak.
+- S7-07 Bucket güvenliği gözden geçirilecek.
+- S7-08 Ağ hata senaryoları test edilecek.
+- S7-09 Feed ile etkileşim bağları doğrulanacak.
+- S7-10 Sprint sonunda etkileşim modülü demo verilecek.
+- S7-11 Upload ve yorum limitleri config dosyasında dışarı alınacak.
+
+## 41. Sprint 8 Ayrıntısı
+- S8-01 Sohbet ekranı yapılacak.
+- S8-02 Mesaj geçmişi uçları tamamlanacak.
+- S8-03 Mesaj gönderme akışı eklenecek.
+- S8-04 Realtime aboneliği kurulacak.
+- S8-05 Yeniden bağlanma stratejisi eklenecek.
+- S8-06 Okundu durumu tamamlanacak.
+- S8-07 Çift mesaj testi yapılacak.
+- S8-08 Yük testi uygulanacak.
+- S8-09 Mobil mesajlaşma ekranı doğrulanacak.
+- S8-10 Sprint sonunda DM modülü demo verilecek.
+- S8-11 Mesaj uzunluğu ve reconnect eşikleri config dosyasında toplanacak.
+
+## 42. Sprint 9 Ayrıntısı
+- S9-01 Kritik E2E testler tamamlanacak.
+- S9-02 Güvenlik negatif testleri tekrarlanacak.
+- S9-03 Performans hedefleri ölçülecek.
+- S9-04 Log ve izleme ayarları doğrulanacak.
+- S9-05 Regresyon listesi kapatılacak.
+- S9-06 Responsive açıklar giderilecek.
+- S9-07 Tarayıcı uyumluluğu kontrol edilecek.
+- S9-08 STD kanıtları toplanacak.
+- S9-09 Sürüm adayı üretilecek.
+- S9-10 Sprint sonunda sürüm adayı demo verilecek.
+- S9-11 Test senaryolarındaki değişebilir eşikler test config dosyalarına alınacak.
+
+## 43. Sprint 10 Ayrıntısı
+- S10-01 Canlı ortam ayarları girilecek.
+- S10-02 Web dağıtımı yapılacak.
+- S10-03 API dağıtımı yapılacak.
+- S10-04 Üretim smoke testleri koşturulacak.
+- S10-05 Rollback planı doğrulanacak.
+- S10-06 README güncellenecek.
+- S10-07 Sunum dosyaları tamamlanacak.
+- S10-08 Demo hesapları hazırlanacak.
+- S10-09 Nihai belge kontrolü yapılacak.
+- S10-10 Proje teslime hazır hale getirilecek.
+- S10-11 Sunumda hızlı değişiklik için kritik config dosyalarının listesi hazırlanacak.
+
+## 44. Risk Kaydı
+- RKY-01 Risk Feed sorgusunun ölçeklendikçe yavaşlaması.
+- RKY-02 Önlem İndeksler, cursor pagination ve erken benchmark uygulanacak.
+- RKY-03 Risk RLS politikasının yanlış yazılmasıyla veri sızıntısı oluşması.
+- RKY-04 Önlem Varsayılan reddetme, negatif test ve politika incelemesi yapılacak.
+- RKY-05 Risk Vercel üzerinde Express beklentisi nedeniyle yanlış dağıtım kurgusu kurulması.
+- RKY-06 Önlem Web ve API ayrı servisler olarak dağıtılacak.
+- RKY-07 Risk `auth.users` ve profil verisinin karışması.
+- RKY-08 Önlem Fiziksel model baştan `profiles` ayrımıyla kurulacak.
+- RKY-09 Risk Gerçek zamanlı mesajlarda bağlantı kopması nedeniyle kötü deneyim oluşması.
+- RKY-10 Önlem Yeniden bağlanma ve mesaj durum yönetimi uygulanacak.
+- RKY-11 Risk Ücretsiz storage limitinin erken dolması.
+- RKY-12 Önlem Görsel sınırı ve istemci sıkıştırması uygulanacak.
+- RKY-13 Risk Takipçi sayaçlarının tutarsız kalması.
+- RKY-14 Önlem Trigger veya güvenli güncelleme stratejisi ve testler uygulanacak.
+- RKY-15 Risk Son hafta entegrasyon sırasında büyük hataların patlaması.
+- RKY-16 Önlem Erken ve sık entegrasyon ile sprint sonu demolar yapılacak.
+- RKY-17 Risk Token yönetiminin zayıf kurulmasıyla istemci güvenliğinin düşmesi.
+- RKY-18 Önlem HTTPOnly oturum yaklaşımı tercih edilecek.
+- RKY-19 Risk Çok fazla kütüphane seçilmesiyle bakım yükünün artması.
+- RKY-20 Önlem Her problem için tek sorumlu araç seçilecek.
+- RKY-21 Risk Yetersiz test nedeniyle ders demosunda görünmeyen hatalar.
+- RKY-22 Önlem Kritik yollar E2E ile korunacak.
+- RKY-23 Risk Çelişkili rapor kararlarının kod içinde farklı uygulanması.
+- RKY-24 Önlem Bu plan referans yürütme dokümanı olarak kullanılacak.
+- RKY-25 Risk Maliyet veya kota nedeniyle üretim ortamında hizmet kesintisi.
+- RKY-26 Önlem Limit izleme ve hafif veri kullanımı politikası uygulanacak.
+- RKY-27 Risk Kapsam kayması nedeniyle ana özelliklerin yarım kalması.
+- RKY-28 Önlem Kapsam dışı liste disiplinle korunacak.
+- RKY-29 Risk Ekip üyelerinin farklı kalite standartlarıyla çalışması.
+- RKY-30 Önlem Ortak lint, PR ve test kapıları zorunlu tutulacak.
+- RKY-31 Risk Mesajlaşma modülünün beklenenden fazla zaman alması.
+- RKY-32 Önlem Önce temel DM, sonra iyileştirme yaklaşımı uygulanacak.
+- RKY-33 Risk Görsel yükleme ile post kaydı arasında atomiklik bozulması.
+- RKY-34 Önlem Başarısız akışlarda temizleme ve geri alma stratejisi yazılacak.
+- RKY-35 Risk Sunum günü canlı demoda servis sorunu yaşanması.
+- RKY-36 Önlem Yedek demo verisi ve ekran görüntüsü akışı hazırlanacak.
+- RKY-37 Risk Loglarda hassas veri kalması.
+- RKY-38 Önlem Log maskeleme ve gözden geçirme yapılacak.
+- RKY-39 Risk Tarayıcı farkları nedeniyle mobil kullanımın kırılması.
+- RKY-40 Önlem Kritik ekranlarda çoklu tarayıcı ve viewport testi yapılacak.
+- RKY-41 Risk Kodun gereksiz uzun ve karmaşık hale gelmesi nedeniyle ekip hakimiyetinin düşmesi.
+- RKY-42 Önlem Basit çözüm önceliği, kod incelemesinde komplekslik kontrolü ve modül bazlı config disiplini uygulanacak.
+- RKY-43 Risk Değişebilir değerlerin koda dağılması nedeniyle tahtada hızlı değişiklik yapılamaması.
+- RKY-44 Önlem Her kod grubunda zorunlu `config` dosyası standardı kullanılacak.
+- RKY-45 Risk Yetersiz veya gereksiz uzun yorumlar nedeniyle bakım hızının düşmesi.
+- RKY-46 Önlem Kısa ama açıklayıcı Türkçe yorum standardı ekip örnekleriyle birlikte uygulanacak.
+
+## 45. Faz Geçiş Kapıları
+- FGK-01 Faz 0 kapısı kapsam ve sorumluluk onayıdır.
+- FGK-02 Faz 1 kapısı ADR ve topoloji netliğidir.
+- FGK-03 Faz 2 kapısı çalışan repo, lint ve build iskeletidir.
+- FGK-04 Faz 3 kapısı temiz migration ve temel RLS'dir.
+- FGK-05 Faz 4 kapısı güvenli auth ve negatif test başarısıdır.
+- FGK-06 Faz 5 kapısı ortak backend kalıbının oturmasıdır.
+- FGK-07 Faz 6 kapısı tutarlı UI shell ve veri istemcisidir.
+- FGK-08 Faz 7 kapısı profil ve follow doğruluğudur.
+- FGK-09 Faz 8 kapısı güvenli içerik oluşturmadır.
+- FGK-10 Faz 9 kapısı doğru ve yeterince hızlı feed'dir.
+- FGK-11 Faz 10 kapısı güvenli medya ve idempotent etkileşimlerdir.
+- FGK-12 Faz 11 kapısı güvenilir DM akışıdır.
+- FGK-13 Faz 12 kapısı kritik testlerin yeşil olmasıdır.
+- FGK-14 Faz 13 kapısı canlı ortam smoke testidir.
+- FGK-15 Faz 14 kapısı teslim paketinin bütünlüğüdür.
+
+## 46. Tanım Olarak Bitmiş Sayılma Kriteri
+- TBS-01 İlgili modül için kabul kriterleri karşılanmış olmalıdır.
+- TBS-02 Kritik hata bulunmamalıdır.
+- TBS-03 Yetki ve doğrulama senaryoları test edilmiş olmalıdır.
+- TBS-04 Gerekli birim ve entegrasyon testleri yazılmış olmalıdır.
+- TBS-05 Dokümantasyon güncellenmiş olmalıdır.
+- TBS-06 Log ve hata davranışı gözden geçirilmiş olmalıdır.
+- TBS-07 Responsive temel kırılımlar kontrol edilmiş olmalıdır.
+- TBS-08 Kod incelemesi tamamlanmış olmalıdır.
+- TBS-09 Teknik borç kaldıysa kayıt altına alınmış olmalıdır.
+- TBS-10 Sonraki faz için gerekli açık bağımlılık bırakılmamış olmalıdır.
+- TBS-11 Gereksiz komplekslik üreten kod veya tasarım kararı bırakılmamış olmalıdır.
+- TBS-12 Değişebilir değerler ilgili modülün `config` dosyasına taşınmış olmalıdır.
+- TBS-13 Kritik karar noktalarında kısa ve anlamlı Türkçe yorumlar bulunmalıdır.
+
+## 47. İlk Sürüm Sonrası Backlog Önerileri
+- BSB-01 Bildirim sistemi.
+- BSB-02 Kullanıcı adı değiştirme akışı.
+- BSB-03 Keşfet ve öneri ekranı.
+- BSB-04 Gelişmiş kullanıcı arama.
+- BSB-05 Post düzenleme.
+- BSB-06 Yorum silme ve düzenleme.
+- BSB-07 Çoklu görsel destekli postlar.
+- BSB-08 Gelişmiş medya moderasyonu.
+- BSB-09 Grup mesajlaşma.
+- BSB-10 Push notification.
+- BSB-11 Gerçek zamanlı beğeni ve yorum akışlarının güçlendirilmesi.
+- BSB-12 Analitik ve yönetim paneli.
+- BSB-13 Gelişmiş onboarding.
+- BSB-14 İçerik öneri motoru.
+- BSB-15 Maliyet ve ölçek artışı için ikinci veri katmanı değerlendirmesi.
+
+## 48. Sonuç
+- SNC-01 Bu plan, projeyi rastgele özellik sıralamasıyla değil, temelden tavana inşa edilecek mühendislik sırasıyla düzenler.
+- SNC-02 İlk adım kapsam ve mimarinin netleşmesi, son adım ise çalışan sistemin güvenle teslim edilmesidir.
+- SNC-03 Her modül, kendinden önce gelen katmanın doğrulanmış olmasına dayanır.
+- SNC-04 Bu yaklaşım, son haftada birleştirilen kırılgan proje yerine her aşaması ölçülmüş bir ürün üretir.
+- SNC-05 Uygulama bu plana sadık kalınarak ilerletilirse ders projesi sınırları içinde güçlü, savunulabilir ve sürdürülebilir bir sonuç elde edilir.

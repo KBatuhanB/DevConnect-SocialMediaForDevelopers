@@ -1,0 +1,33 @@
+name: Ops Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      web_url:
+        description: Web uygulama taban URL
+        required: true
+        type: string
+      api_url:
+        description: API taban URL
+        required: true
+        type: string
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu cek
+        uses: actions/checkout@v4
+
+      - name: Node kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Bagimliliklari kur
+        run: npm ci
+
+      - name: Ops smoke kos
+        run: npm run smoke:ops -- --web-url "${{ inputs.web_url }}" --api-url "${{ inputs.api_url }}"

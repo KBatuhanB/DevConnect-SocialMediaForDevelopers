@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: devconnect-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build --workspace @devconnect/api
+    startCommand: npm run start --workspace @devconnect/api
+    healthCheckPath: /ready
+    envVars:
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: PORT
+        value: 10000
+      - key: WEB_ORIGIN
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_PROJECT_REF
+        sync: false
+      - key: SUPABASE_REGION
+        sync: false
+      - key: COOKIE_SECURE
+        value: true

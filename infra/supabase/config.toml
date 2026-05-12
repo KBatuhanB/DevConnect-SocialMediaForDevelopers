@@ -1,0 +1,20 @@
+# Bu dosya Supabase proje referansini tek yerde tutmak icin eklenmistir.
+# Secret degerler burada tutulmaz.
+
+[project]
+name = "DevConnect"
+ref = "sqkwilincloarobypfbp"
+region = "eu-central-1"
+api_url = "https://sqkwilincloarobypfbp.supabase.co"
+
+[storage]
+avatar_bucket = "avatars"
+post_media_bucket = "post-media"
+max_file_size_bytes = 2097152
+
+[limits]
+profile_bio_max_length = 300
+profile_skills_max_count = 10
+post_content_max_length = 5000
+message_content_max_length = 5000
+comment_content_max_length = 1000
