@@ -1,5 +1,3 @@
-import { webEnv } from "@web/config/env";
-
 type ApiMeta = {
   requestId?: string;
 };
@@ -48,16 +46,31 @@ export function readApiErrorMessage(error: unknown) {
   return "Islem su an tamamlanamadi.";
 }
 
+function buildRequestPath(path: string) {
+  return path.startsWith("/") ? path : `/${path}`;
+}
+
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${webEnv.apiBaseUrl}${path}`, {
-    ...init,
-    credentials: "include",
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {})
-    }
-  });
+  const requestPath = buildRequestPath(path);
+
+  let response: Response;
+
+  try {
+    response = await fetch(requestPath, {
+      ...init,
+      credentials: "include",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {})
+      }
+    });
+  } catch {
+    throw new ApiClientError(
+      0,
+      "API'ye ulasilamadi. Vercel proxy ve Render WEB_ORIGIN ayarlarini kontrol et."
+    );
+  }
 
   const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
   const failure = readFailurePayload(payload);
