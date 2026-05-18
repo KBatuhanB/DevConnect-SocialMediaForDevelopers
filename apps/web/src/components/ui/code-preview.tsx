@@ -11,7 +11,7 @@ export function CodePreview({ title, language, code }: CodePreviewProps) {
     <Card className="code-preview-card">
       <div className="section-head">
         <div>
-          <p className="eyebrow">Kod onizleme</p>
+          <p className="eyebrow">Kod önizleme</p>
           <h3>{title}</h3>
         </div>
         <span className="chip">{language}</span>

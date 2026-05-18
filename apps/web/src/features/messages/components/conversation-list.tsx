@@ -5,20 +5,18 @@ import { EmptyState } from "@web/components/ui/empty-state";
 import { Skeleton } from "@web/components/ui/skeleton";
 import { cn } from "@web/lib/cn";
 import { messagesFeatureConfig } from "../config";
-import type { ConversationSummary } from "../types";
+import type { ConversationSummary, MessagePartner } from "../types";
+import { MessageAvatar } from "./message-avatar";
 
 type ConversationListProps = {
   activePartnerId: string;
   conversations: ConversationSummary[];
+  followingProfiles: MessagePartner[];
   isError: boolean;
   isLoading: boolean;
   onRetry: () => void;
   onSelect: (partnerId: string) => void;
 };
-
-function readInitial(username: string) {
-  return username.slice(0, 1).toUpperCase();
-}
 
 function readPreview(conversation: ConversationSummary) {
   if (!conversation.lastMessage) {
@@ -44,6 +42,7 @@ function readTimeLabel(value: string) {
 export function ConversationList({
   activePartnerId,
   conversations,
+  followingProfiles,
   isError,
   isLoading,
   onRetry,
@@ -51,16 +50,14 @@ export function ConversationList({
 }: ConversationListProps) {
   return (
     <Card className="messages-list-card">
-      <div className="section-head">
+      <div className="messages-sidebar-head">
         <div>
-          <p className="eyebrow">Faz 11 mesajlasma</p>
           <h2>{messagesFeatureConfig.messages.listTitle}</h2>
         </div>
-        <span className="chip">{conversations.length} kayit</span>
       </div>
 
       {isLoading ? (
-        <div className="messages-list">
+        <div className="messages-sidebar-scroll messages-sidebar-scroll-loading">
           {Array.from({ length: 4 }, (_, index) => (
             <div className="conversation-item" key={index}>
               <Skeleton className="skeleton-title" />
@@ -73,48 +70,89 @@ export function ConversationList({
           actionLabel="Tekrar dene"
           description={messagesFeatureConfig.messages.listLoadError}
           onAction={onRetry}
-          title="Konusma listesi okunamadi"
+          title="Konuşma listesi okunamadı"
         />
-      ) : conversations.length === 0 ? (
+      ) : conversations.length === 0 && followingProfiles.length === 0 ? (
         <EmptyState
           description={messagesFeatureConfig.messages.emptyListDescription}
           title={messagesFeatureConfig.messages.emptyListTitle}
         />
       ) : (
-        <div className="messages-list">
-          {conversations.map((conversation) => (
-            <button
-              className={cn(
-                "conversation-item",
-                conversation.partner.id === activePartnerId && "conversation-item-active"
-              )}
-              key={conversation.partner.id}
-              onClick={() => onSelect(conversation.partner.id)}
-              type="button"
-            >
-              <div className="conversation-item-top">
-                <div className="conversation-item-main">
-                  <div className="message-avatar">
-                    {conversation.partner.avatarUrl ? (
-                      <img alt={`${conversation.partner.username} avatar`} className="message-avatar-image" src={conversation.partner.avatarUrl} />
-                    ) : (
-                      <span>{readInitial(conversation.partner.username)}</span>
+        <div className="messages-sidebar-scroll">
+          <section className="messages-sidebar-section" aria-labelledby="messages-recent-heading">
+            <div className="messages-sidebar-section-head">
+              <h3 id="messages-recent-heading">{messagesFeatureConfig.messages.recentTitle}</h3>
+            </div>
+
+            {conversations.length > 0 ? (
+              <div className="messages-list">
+                {conversations.map((conversation) => (
+                  <button
+                    className={cn(
+                      "conversation-item",
+                      conversation.partner.id === activePartnerId && "conversation-item-active"
                     )}
-                  </div>
+                    key={conversation.partner.id}
+                    onClick={() => onSelect(conversation.partner.id)}
+                    type="button"
+                  >
+                    <div className="conversation-item-top">
+                      <div className="conversation-item-main">
+                        <MessageAvatar avatarUrl={conversation.partner.avatarUrl} username={conversation.partner.username} />
 
-                  <div>
-                    <strong>{conversation.partner.username}</strong>
-                    <p>{readPreview(conversation)}</p>
-                  </div>
-                </div>
+                        <div>
+                          <strong>{conversation.partner.username}</strong>
+                          <p>{readPreview(conversation)}</p>
+                        </div>
+                      </div>
 
-                <div className="conversation-side-copy">
-                  {conversation.updatedAt ? <span>{readTimeLabel(conversation.updatedAt)}</span> : null}
-                  {conversation.unreadCount > 0 ? <span className="chip">{conversation.unreadCount} yeni</span> : null}
-                </div>
+                      <div className="conversation-side-copy">
+                        {conversation.updatedAt ? <span>{readTimeLabel(conversation.updatedAt)}</span> : null}
+                        {conversation.unreadCount > 0 ? <span className="chip">{conversation.unreadCount} yeni</span> : null}
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
-            </button>
-          ))}
+            ) : (
+              <p className="messages-sidebar-note">{messagesFeatureConfig.messages.recentEmpty}</p>
+            )}
+          </section>
+
+          <div className="messages-sidebar-divider" role="separator" />
+
+          <section className="messages-sidebar-section" aria-labelledby="messages-following-heading">
+            <div className="messages-sidebar-section-head">
+              <h3 id="messages-following-heading">{messagesFeatureConfig.messages.followingTitle}</h3>
+            </div>
+
+            {followingProfiles.length > 0 ? (
+              <div className="messages-list">
+                {followingProfiles.map((profile) => (
+                  <button
+                    className={cn(
+                      "conversation-item",
+                      "conversation-item-secondary",
+                      profile.id === activePartnerId && "conversation-item-active"
+                    )}
+                    key={profile.id}
+                    onClick={() => onSelect(profile.id)}
+                    type="button"
+                  >
+                    <div className="conversation-item-main">
+                      <MessageAvatar avatarUrl={profile.avatarUrl} username={profile.username} />
+
+                      <div>
+                        <strong>{profile.username}</strong>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="messages-sidebar-note">{messagesFeatureConfig.messages.followingEmpty}</p>
+            )}
+          </section>
         </div>
       )}
     </Card>

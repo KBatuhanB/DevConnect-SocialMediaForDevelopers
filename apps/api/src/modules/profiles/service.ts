@@ -108,6 +108,16 @@ export function createProfilesService(repository: ProfilesRepository) {
       return readProfileOrThrow(repository, context, context.userId);
     },
 
+    async searchProfiles(context: ProfilesContext, query: string) {
+      const normalizedQuery = query.trim();
+
+      if (normalizedQuery.length === 0) {
+        return [];
+      }
+
+      return repository.searchProfiles(context, normalizedQuery, profilesConfig.limits.searchResultLimit);
+    },
+
     async getProfileById(context: ProfilesContext, profileId: string) {
       return readProfileOrThrow(repository, context, profileId);
     },

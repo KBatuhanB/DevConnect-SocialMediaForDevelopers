@@ -1,6 +1,6 @@
 import { AppError } from "../../core/errors/app-error";
 import { postsConfig } from "./config";
-import type { CreatePostInput, PostMediaPayload, PostsContext, PostsRepository } from "./types";
+import type { CreatePostCommentInput, CreatePostInput, PostMediaPayload, PostsContext, PostsRepository } from "./types";
 
 function readMediaExtension(contentType: string) {
   switch (contentType) {
@@ -48,6 +48,10 @@ function normalizeContent(input: CreatePostInput) {
   return input.content.replace(/\r\n/g, "\n").split(String.fromCharCode(0)).join("").trim();
 }
 
+function normalizeCommentContent(input: CreatePostCommentInput) {
+  return input.content.replace(/\r\n/g, "\n").split(String.fromCharCode(0)).join("").trim();
+}
+
 function validateCreateInput(input: CreatePostInput) {
   const normalizedContent = normalizeContent(input);
 
@@ -78,10 +82,46 @@ function validateCreateInput(input: CreatePostInput) {
   return normalizedContent;
 }
 
+function validateCommentInput(input: CreatePostCommentInput) {
+  const normalizedContent = normalizeCommentContent(input);
+
+  if (normalizedContent.length === 0) {
+    throw new AppError({
+      statusCode: 400,
+      code: "POST_COMMENT_CONTENT_REQUIRED",
+      message: "Yorum bos olamaz."
+    });
+  }
+
+  if (normalizedContent.length > postsConfig.limits.commentMaxLength) {
+    throw new AppError({
+      statusCode: 400,
+      code: "POST_COMMENT_CONTENT_TOO_LONG",
+      message: "Yorum limiti asildi."
+    });
+  }
+
+  return normalizedContent;
+}
+
 export function createPostsService(repository: PostsRepository) {
   return {
     async getPostsByProfileId(context: PostsContext, profileId: string) {
       return repository.findPostsByProfileId(context, profileId);
+    },
+
+    async getCommentsByPostId(context: PostsContext, postId: string) {
+      const post = await repository.findPostById(context, postId);
+
+      if (!post) {
+        throw new AppError({
+          statusCode: 404,
+          code: "POST_NOT_FOUND",
+          message: "Paylasim kaydi bulunamadi."
+        });
+      }
+
+      return repository.findCommentsByPostId(context, postId);
     },
 
     async createPost(context: PostsContext, input: CreatePostInput) {
@@ -110,6 +150,99 @@ export function createPostsService(repository: PostsRepository) {
       }
 
       return post;
+    },
+
+    async createComment(context: PostsContext, postId: string, input: CreatePostCommentInput) {
+      const post = await repository.findPostById(context, postId);
+
+      if (!post) {
+        throw new AppError({
+          statusCode: 404,
+          code: "POST_NOT_FOUND",
+          message: "Paylasim kaydi bulunamadi."
+        });
+      }
+
+      const comment = await repository.createComment(context, postId, validateCommentInput(input));
+
+      if (!comment) {
+        throw new AppError({
+          statusCode: 404,
+          code: "POST_COMMENT_AUTHOR_NOT_FOUND",
+          message: "Yorum sahibi bulunamadi."
+        });
+      }
+
+      const nextPost = await repository.findPostById(context, postId);
+
+      if (!nextPost) {
+        throw new AppError({
+          statusCode: 404,
+          code: "POST_NOT_FOUND",
+          message: "Paylasim kaydi bulunamadi."
+        });
+      }
+
+      return {
+        comment,
+        post: nextPost
+      };
+    },
+
+    async likePost(context: PostsContext, postId: string) {
+      const post = await repository.findPostById(context, postId);
+
+      if (!post) {
+        throw new AppError({
+          statusCode: 404,
+          code: "POST_NOT_FOUND",
+          message: "Paylasim kaydi bulunamadi."
+        });
+      }
+
+      if (!post.isLiked) {
+        await repository.addLike(context, postId);
+      }
+
+      const nextPost = await repository.findPostById(context, postId);
+
+      if (!nextPost) {
+        throw new AppError({
+          statusCode: 404,
+          code: "POST_NOT_FOUND",
+          message: "Paylasim kaydi bulunamadi."
+        });
+      }
+
+      return nextPost;
+    },
+
+    async unlikePost(context: PostsContext, postId: string) {
+      const post = await repository.findPostById(context, postId);
+
+      if (!post) {
+        throw new AppError({
+          statusCode: 404,
+          code: "POST_NOT_FOUND",
+          message: "Paylasim kaydi bulunamadi."
+        });
+      }
+
+      if (post.isLiked) {
+        await repository.removeLike(context, postId);
+      }
+
+      const nextPost = await repository.findPostById(context, postId);
+
+      if (!nextPost) {
+        throw new AppError({
+          statusCode: 404,
+          code: "POST_NOT_FOUND",
+          message: "Paylasim kaydi bulunamadi."
+        });
+      }
+
+      return nextPost;
     },
 
     async deleteMyPost(context: PostsContext, postId: string) {

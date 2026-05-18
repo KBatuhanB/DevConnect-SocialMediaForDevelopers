@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Card } from "@web/components/ui/card";
+import { PostInteractions } from "@web/features/posts/components/post-interactions";
 import { profileFeatureConfig } from "@web/features/profiles/config";
-import { feedFeatureConfig } from "../config";
 import type { FeedItemView } from "../types";
 
 function formatFeedDate(createdAt: string) {
@@ -38,7 +38,7 @@ export function FeedCard({ item }: { item: FeedItemView }) {
         </div>
       </div>
 
-      {item.postType === "image" && item.mediaUrl ? <img alt="Feed gorseli" className="post-media-preview" src={item.mediaUrl} /> : null}
+      {item.postType === "image" && item.mediaUrl ? <img alt="Feed görseli" className="post-media-preview" src={item.mediaUrl} /> : null}
 
       {item.postType === "code" ? (
         <pre className="code-preview-block post-code-block">
@@ -48,7 +48,7 @@ export function FeedCard({ item }: { item: FeedItemView }) {
         <p className="lead-copy">{item.content}</p>
       ) : null}
 
-      <p className="muted feed-footer-note">{feedFeatureConfig.messages.interactionPlaceholder}</p>
+      <PostInteractions isLiked={item.isLiked} postId={item.id} stats={item.stats} />
     </Card>
   );
 }

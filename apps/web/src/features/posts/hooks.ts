@@ -4,9 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { feedFeatureConfig } from "@web/features/feed/config";
 import { profileFeatureConfig } from "@web/features/profiles/config";
 import { viewerFeatureConfig } from "@web/features/viewer/config";
-import { createPost, deletePost, getPostsByProfileId } from "./api";
+import { createPost, createPostComment, deletePost, getPostComments, getPostsByProfileId, likePost, unlikePost } from "./api";
 import { postsFeatureConfig } from "./config";
-import type { CreatePostInput, PostView } from "./types";
+import type { CreatePostCommentResult, CreatePostInput, PostView } from "./types";
 
 function syncPostCache(queryClient: ReturnType<typeof useQueryClient>, post: PostView) {
   void queryClient.invalidateQueries({ queryKey: feedFeatureConfig.queryKeys.root });
@@ -45,6 +45,37 @@ export function useDeletePostMutation() {
     mutationFn: (postId: string) => deletePost(postId),
     onSuccess(post) {
       syncPostCache(queryClient, post);
+    }
+  });
+}
+
+export function usePostCommentsQuery(postId: string, enabled = true) {
+  return useQuery({
+    queryKey: postsFeatureConfig.queryKeys.comments(postId),
+    queryFn: () => getPostComments(postId),
+    enabled: enabled && postId.length > 0
+  });
+}
+
+export function useTogglePostLikeMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ postId, isLiked }: { postId: string; isLiked: boolean }) => (isLiked ? unlikePost(postId) : likePost(postId)),
+    onSuccess(post) {
+      syncPostCache(queryClient, post);
+    }
+  });
+}
+
+export function useCreatePostCommentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ postId, content }: { postId: string; content: string }) => createPostComment(postId, { content }),
+    onSuccess(result: CreatePostCommentResult) {
+      syncPostCache(queryClient, result.post);
+      void queryClient.invalidateQueries({ queryKey: postsFeatureConfig.queryKeys.comments(result.post.id) });
     }
   });
 }

@@ -3,6 +3,7 @@ import { apiEnv } from "../../config/env";
 export const profilesConfig = {
   routes: {
     me: "/api/profiles/me",
+    search: "/api/profiles/search",
     detail: "/api/profiles/:profileId",
     follow: "/api/profiles/:profileId/follow",
     avatar: "/api/profiles/me/avatar"
@@ -12,6 +13,8 @@ export const profilesConfig = {
     bioMaxLength: 300,
     skillMaxCount: 10,
     skillMaxLength: 24,
+    searchQueryMaxLength: 50,
+    searchResultLimit: 6,
     avatarMaxBytes: 2_097_152,
     requestBodyLimit: "4mb"
   },

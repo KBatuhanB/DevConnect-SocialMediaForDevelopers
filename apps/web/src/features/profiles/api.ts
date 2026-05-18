@@ -1,6 +1,6 @@
 import { apiRequest } from "@web/lib/api-client";
 import { profileFeatureConfig } from "./config";
-import type { ProfileView, UpdateMyProfileInput, UploadAvatarInput } from "./types";
+import type { ProfileSearchItem, ProfileView, UpdateMyProfileInput, UploadAvatarInput } from "./types";
 
 export async function getMyProfile() {
   const payload = await apiRequest<{ profile: ProfileView }>(profileFeatureConfig.api.mePath, {
@@ -8,6 +8,14 @@ export async function getMyProfile() {
   });
 
   return payload.profile;
+}
+
+export async function searchProfiles(query: string) {
+  const payload = await apiRequest<{ profiles: ProfileSearchItem[] }>(profileFeatureConfig.api.searchPath(query), {
+    method: "GET"
+  });
+
+  return payload.profiles;
 }
 
 export async function getProfileById(profileId: string) {

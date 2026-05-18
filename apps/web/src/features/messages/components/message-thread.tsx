@@ -11,11 +11,9 @@ import { cn } from "@web/lib/cn";
 import { profileFeatureConfig } from "@web/features/profiles/config";
 import { messagesFeatureConfig } from "../config";
 import type { MessagePartner, ThreadMessage } from "../types";
-
-type ConnectionState = "idle" | "connecting" | "connected" | "reconnecting" | "offline";
+import { MessageAvatar } from "./message-avatar";
 
 type MessageThreadProps = {
-  connectionState: ConnectionState;
   draft: string;
   hasOlder: boolean;
   isError: boolean;
@@ -25,17 +23,11 @@ type MessageThreadProps = {
   items: ThreadMessage[];
   onDraftChange: (value: string) => void;
   onLoadOlder: () => void;
-  onReconnect: () => void;
   onRetryLoad: () => void;
   onRetryMessage: (key: string) => void;
   onSend: () => void | Promise<void>;
   partner: MessagePartner | null;
-  showRealtimeWarning: boolean;
 };
-
-function readInitial(username: string) {
-  return username.slice(0, 1).toUpperCase();
-}
 
 function readDateLabel(value: string) {
   return new Intl.DateTimeFormat("tr-TR", {
@@ -63,23 +55,7 @@ function readStatusLabel(item: ThreadMessage) {
   return item.isRead ? messagesFeatureConfig.messages.read : messagesFeatureConfig.messages.sent;
 }
 
-function readConnectionLabel(connectionState: ConnectionState) {
-  switch (connectionState) {
-    case "connected":
-      return messagesFeatureConfig.messages.connectionConnected;
-    case "connecting":
-      return messagesFeatureConfig.messages.connectionConnecting;
-    case "reconnecting":
-      return messagesFeatureConfig.messages.connectionReconnecting;
-    case "offline":
-      return messagesFeatureConfig.messages.connectionOffline;
-    default:
-      return messagesFeatureConfig.messages.connectionConnecting;
-  }
-}
-
 export function MessageThread({
-  connectionState,
   draft,
   hasOlder,
   isError,
@@ -89,21 +65,53 @@ export function MessageThread({
   items,
   onDraftChange,
   onLoadOlder,
-  onReconnect,
   onRetryLoad,
   onRetryMessage,
   onSend,
-  partner,
-  showRealtimeWarning
+  partner
 }: MessageThreadProps) {
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const historyRef = useRef<HTMLDivElement | null>(null);
+  const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const latestMessageKey = items[items.length - 1]?.key;
 
+  function syncComposerHeight() {
+    const textareaElement = composerTextareaRef.current;
+
+    if (!textareaElement) {
+      return;
+    }
+
+    textareaElement.style.height = "0px";
+
+    const computedStyle = window.getComputedStyle(textareaElement);
+    const lineHeight = Number.parseFloat(computedStyle.lineHeight) || 24;
+    const verticalInset =
+      Number.parseFloat(computedStyle.paddingTop) +
+      Number.parseFloat(computedStyle.paddingBottom) +
+      Number.parseFloat(computedStyle.borderTopWidth) +
+      Number.parseFloat(computedStyle.borderBottomWidth);
+    const maxHeight = lineHeight * 5 + verticalInset;
+    const nextHeight = Math.min(textareaElement.scrollHeight, maxHeight);
+
+    textareaElement.style.height = `${nextHeight}px`;
+    textareaElement.style.overflowY = textareaElement.scrollHeight > maxHeight ? "auto" : "hidden";
+  }
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      block: "end"
+    const historyElement = historyRef.current;
+
+    if (!historyElement) {
+      return;
+    }
+
+    historyElement.scrollTo({
+      top: historyElement.scrollHeight
     });
   }, [latestMessageKey, partner?.id]);
+
+  useEffect(() => {
+    syncComposerHeight();
+  }, [draft, partner?.id]);
 
   if (!partner) {
     return (
@@ -181,18 +189,11 @@ export function MessageThread({
 
   return (
     <Card className="messages-thread-card">
-      <div className="section-head">
-        <div className="conversation-item-main">
-          <div className="message-avatar">
-            {partner.avatarUrl ? (
-              <img alt={`${partner.username} avatar`} className="message-avatar-image" src={partner.avatarUrl} />
-            ) : (
-              <span>{readInitial(partner.username)}</span>
-            )}
-          </div>
+      <div className="section-head messages-thread-head">
+        <div className="messages-thread-profile-row">
+          <MessageAvatar avatarUrl={partner.avatarUrl} username={partner.username} />
 
           <div>
-            <p className="eyebrow">Aktif DM</p>
             <h2>{partner.username}</h2>
           </div>
         </div>
@@ -200,24 +201,6 @@ export function MessageThread({
         <Link className="ui-link" href={profileFeatureConfig.paths.detail(partner.id)}>
           {messagesFeatureConfig.messages.profileLink}
         </Link>
-      </div>
-
-      <div className="message-thread-toolbar">
-        <span
-          className={cn(
-            "message-status-chip",
-            connectionState === "connected" && !showRealtimeWarning && "message-status-chip-success",
-            (connectionState === "offline" || showRealtimeWarning) && "message-status-chip-error"
-          )}
-        >
-          {showRealtimeWarning ? messagesFeatureConfig.messages.realtimeUnavailable : readConnectionLabel(connectionState)}
-        </span>
-
-        {(connectionState === "offline" || connectionState === "reconnecting") && !showRealtimeWarning ? (
-          <Button onClick={onReconnect} type="button" variant="secondary">
-            Kanali yenile
-          </Button>
-        ) : null}
       </div>
 
       {hasOlder ? (
@@ -228,9 +211,8 @@ export function MessageThread({
         </div>
       ) : null}
 
-      <div className="message-history">
+      <div className="message-history" ref={historyRef}>
         {rows.length > 0 ? rows : <p className="message-history-note">{messagesFeatureConfig.messages.emptyHistoryDescription}</p>}
-        <div ref={bottomRef} />
       </div>
 
       <form
@@ -241,10 +223,12 @@ export function MessageThread({
         }}
       >
         <Textarea
+          aria-label="Mesaj icerigi"
+          ref={composerTextareaRef}
           maxLength={messagesFeatureConfig.composer.maxLength}
           onChange={(event) => onDraftChange(event.target.value)}
           placeholder={messagesFeatureConfig.composer.placeholder}
-          rows={4}
+          rows={1}
           value={draft}
         />
 
@@ -253,7 +237,7 @@ export function MessageThread({
             {draft.length} / {messagesFeatureConfig.composer.maxLength}
           </span>
 
-          <Button disabled={isSending || draft.trim().length === 0} type="submit">
+          <Button className="message-composer-submit" disabled={isSending || draft.trim().length === 0} type="submit">
             {isSending ? messagesFeatureConfig.messages.sending : messagesFeatureConfig.messages.sendButton}
           </Button>
         </div>

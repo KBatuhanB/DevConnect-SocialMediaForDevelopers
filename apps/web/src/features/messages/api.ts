@@ -1,6 +1,6 @@
 import { apiRequest } from "@web/lib/api-client";
 import { messagesFeatureConfig } from "./config";
-import type { ConversationSummary, MessageCursor, MessageHistoryPage, MessageView, RealtimeAuth, SendMessageInput } from "./types";
+import type { MessageCursor, MessageHistoryPage, MessageView, MessagesSidebarData, RealtimeAuth, SendMessageInput } from "./types";
 
 function createHistoryQuery(cursor: MessageCursor | null) {
   if (!cursor) {
@@ -23,12 +23,12 @@ export async function getRealtimeAuth() {
   return payload.auth;
 }
 
-export async function getConversations() {
-  const payload = await apiRequest<{ conversations: ConversationSummary[] }>(messagesFeatureConfig.api.listPath, {
+export async function getMessagesSidebar() {
+  const payload = await apiRequest<MessagesSidebarData>(messagesFeatureConfig.api.listPath, {
     method: "GET"
   });
 
-  return payload.conversations;
+  return payload;
 }
 
 export async function getConversationHistory(partnerId: string, cursor: MessageCursor | null) {

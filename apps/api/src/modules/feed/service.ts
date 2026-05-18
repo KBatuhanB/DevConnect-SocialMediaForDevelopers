@@ -1,5 +1,5 @@
 import { feedConfig } from "./config";
-import type { FeedContext, FeedCursor, FeedRepository } from "./types";
+import type { FeedContext, FeedCursor, FeedMode, FeedRepository } from "./types";
 
 function dedupeFeedItems<T extends { id: string }>(items: T[]) {
   const seenIds = new Set<string>();
@@ -16,9 +16,11 @@ function dedupeFeedItems<T extends { id: string }>(items: T[]) {
 
 export function createFeedService(repository: FeedRepository) {
   return {
-    async getFeedPage(context: FeedContext, cursor: FeedCursor | null) {
-      const followingIds = await repository.findFollowingIds(context);
-      const allowedUserIds = Array.from(new Set([context.userId, ...followingIds]));
+    async getFeedPage(context: FeedContext, cursor: FeedCursor | null, mode: FeedMode) {
+      const allowedUserIds =
+        mode === "following"
+          ? Array.from(new Set([context.userId, ...(await repository.findFollowingIds(context))]))
+          : undefined;
       const candidates = await repository.findFeedCandidates(context, {
         allowedUserIds,
         cursor,

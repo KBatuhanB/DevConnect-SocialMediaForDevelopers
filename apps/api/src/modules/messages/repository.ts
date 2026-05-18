@@ -115,6 +115,37 @@ async function readUnreadCounts(supabase: UserSupabaseClient, userId: string) {
   return counts;
 }
 
+async function readFollowingIds(supabase: UserSupabaseClient, userId: string, limit: number) {
+  const { data, error } = await supabase
+    .from("follows")
+    .select("following_id")
+    .eq("follower_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit)
+    .returns<Array<{ following_id: string }>>();
+
+  if (error) {
+    throw new AppError({
+      statusCode: 500,
+      code: "MESSAGE_FOLLOWING_READ_FAILED",
+      message: "Takip edilen profiller su an okunamadi."
+    });
+  }
+
+  const seenIds = new Set<string>();
+
+  return (data ?? [])
+    .map((row) => row.following_id)
+    .filter((id) => {
+      if (seenIds.has(id)) {
+        return false;
+      }
+
+      seenIds.add(id);
+      return true;
+    });
+}
+
 export function createMessagesRepository() {
   return {
     async findProfileById(context: MessagesContext, profileId: string) {
@@ -194,6 +225,16 @@ export function createMessagesRepository() {
       }
 
       return conversations;
+    },
+
+    async findFollowingProfiles(context: MessagesContext, limit: number) {
+      const supabase = createUserSupabaseClient(context.accessToken);
+      const followingIds = await readFollowingIds(supabase, context.userId, limit);
+      const profilesById = await readProfilesByIds(supabase, followingIds);
+
+      return followingIds
+        .map((profileId) => profilesById.get(profileId) ?? null)
+        .filter((profile): profile is MessagePartner => profile !== null);
     },
 
     async findConversationMessages(context: MessagesContext, input: { partnerId: string; cursor: MessageCursor | null; limit: number }) {

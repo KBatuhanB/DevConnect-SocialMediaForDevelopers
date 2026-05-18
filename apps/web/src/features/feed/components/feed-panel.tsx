@@ -5,13 +5,14 @@ import { EmptyState } from "@web/components/ui/empty-state";
 import { Skeleton } from "@web/components/ui/skeleton";
 import { feedFeatureConfig } from "../config";
 import { useFeedInfiniteQuery } from "../hooks";
-import type { FeedItemView } from "../types";
+import type { FeedItemView, FeedMode } from "../types";
 import { FeedCard } from "./feed-card";
 
-export function FeedPanel() {
+export function FeedPanel({ mode }: { mode: FeedMode }) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const feedQuery = useFeedInfiniteQuery();
+  const feedQuery = useFeedInfiniteQuery(mode);
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = feedQuery;
+  const modeCopy = feedFeatureConfig.modes[mode];
 
   const items = useMemo(() => {
     const seenIds = new Set<string>();
@@ -80,19 +81,18 @@ export function FeedPanel() {
       <EmptyState
         actionLabel="Tekrar dene"
         description={feedFeatureConfig.messages.loadError}
+        eyebrow="Feed"
         onAction={() => void feedQuery.refetch()}
-        title="Feed su an okunamiyor"
+        title="Feed şu an okunmuyor"
       />
     );
   } else if (items.length === 0) {
     content = (
       <EmptyState
-        actionLabel="Profile git"
-        description={feedFeatureConfig.messages.emptyDescription}
-        onAction={() => {
-          window.location.href = "/profile";
-        }}
-        title={feedFeatureConfig.messages.emptyTitle}
+        description={modeCopy.emptyDescription}
+        eyebrow={null}
+        showOrbit={false}
+        title={modeCopy.emptyTitle}
       />
     );
   } else {
@@ -108,7 +108,7 @@ export function FeedPanel() {
           {isFetchingNextPage
             ? feedFeatureConfig.messages.loadingMore
             : hasNextPage
-              ? "Asagi indikce yeni kayitlar yuklenecek."
+              ? "Aşağı indikçe yeni kayıtlar yüklenecek."
               : feedFeatureConfig.messages.endReached}
         </div>
       </>
@@ -116,15 +116,7 @@ export function FeedPanel() {
   }
 
   return (
-    <section className="feed-section">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Faz 9 feed</p>
-          <h2>{feedFeatureConfig.messages.title}</h2>
-        </div>
-        <span className="chip">{items.length} kart</span>
-      </div>
-
+    <section className="feed-section feed-flow-section">
       {content}
     </section>
   );

@@ -23,9 +23,9 @@ export const authFeatureConfig = {
     passwordMaxLength: 72
   },
   messages: {
-    unauthorizedHint: "Korumali alana gecmek icin once giris yap.",
-    noSession: "Henuz aktif bir oturum yok.",
-    activeSession: "Aktif oturum bulundu. Korunan sayfaya gecebilirsin.",
-    emailVerification: "Kayit olustu. Devam etmeden once e-posta dogrulamasini tamamla."
+    unauthorizedHint: "Korumalı alana geçmek için önce giriş yap.",
+    noSession: "Henüz aktif bir oturum yok.",
+    activeSession: "Aktif oturum bulundu. Korunan sayfaya geçebilirsin.",
+    emailVerification: "Kayıt oluştu. Devam etmeden önce e-posta doğrulamasını tamamla."
   }
 } as const;

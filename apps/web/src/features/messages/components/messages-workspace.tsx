@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@web/components/providers/toast-provider";
 import { webEnv } from "@web/config/env";
@@ -12,20 +12,18 @@ import {
   upsertMessageInHistoryCache,
   updateMessageInHistoryCache,
   useMarkConversationReadMutation,
-  useMessageConversationsQuery,
+  useMessagesSidebarQuery,
   useMessageHistoryInfiniteQuery,
   useMessagesRealtimeAuthQuery,
   useSendMessageMutation
 } from "../hooks";
-import type { ConversationSummary, MessageView, ThreadMessage } from "../types";
+import type { MessageView, ThreadMessage } from "../types";
 import { ConversationList } from "./conversation-list";
 import { MessageThread } from "./message-thread";
 
 type MessagesWorkspaceProps = {
   initialPartnerId?: string;
 };
-
-type ConnectionState = "idle" | "connecting" | "connected" | "reconnecting" | "offline";
 
 type RealtimeMessageRow = {
   id: string;
@@ -60,21 +58,24 @@ function mapRealtimeRow(row: RealtimeMessageRow, userId: string): MessageView {
 }
 
 export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspaceProps) {
+  const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
   const [draft, setDraft] = useState("");
-  const [realtimeRevision, setRealtimeRevision] = useState(0);
   const [pendingMessagesByPartner, setPendingMessagesByPartner] = useState<Record<string, ThreadMessage[]>>({});
-  const [connectionState, setConnectionState] = useState<ConnectionState>("idle");
-  const routePartnerId = searchParams.get(messagesFeatureConfig.queryParams.partnerId) ?? initialPartnerId;
-  const conversationsQuery = useMessageConversationsQuery();
-  const selectedConversation = conversationsQuery.data?.find((item) => item.partner.id === routePartnerId) ?? null;
-  const activePartnerId = routePartnerId || conversationsQuery.data?.[0]?.partner.id || "";
+  const isMessagesPage = pathname === messagesFeatureConfig.paths.main;
+  const routePartnerId = isMessagesPage ? (searchParams.get(messagesFeatureConfig.queryParams.partnerId) ?? initialPartnerId) : "";
+  const sidebarQuery = useMessagesSidebarQuery(isMessagesPage);
+  const recentConversations = sidebarQuery.data?.conversations ?? [];
+  const followingProfiles = sidebarQuery.data?.followingProfiles ?? [];
+  const selectedConversation = recentConversations.find((item) => item.partner.id === routePartnerId) ?? null;
+  const selectedFollowingProfile = followingProfiles.find((item) => item.id === routePartnerId) ?? null;
+  const activePartnerId = isMessagesPage ? routePartnerId || recentConversations[0]?.partner.id || followingProfiles[0]?.id || "" : "";
   const canUseRealtime = webEnv.supabaseUrl.length > 0 && webEnv.supabaseAnonKey.length > 0;
-  const realtimeAuthQuery = useMessagesRealtimeAuthQuery(activePartnerId.length > 0 && canUseRealtime);
-  const historyQuery = useMessageHistoryInfiniteQuery(activePartnerId, activePartnerId.length > 0);
+  const realtimeAuthQuery = useMessagesRealtimeAuthQuery(isMessagesPage && activePartnerId.length > 0 && canUseRealtime);
+  const historyQuery = useMessageHistoryInfiniteQuery(activePartnerId, isMessagesPage && activePartnerId.length > 0);
   const sendMessageMutation = useSendMessageMutation();
   const markConversationReadMutation = useMarkConversationReadMutation();
   const markConversationRead = markConversationReadMutation.mutateAsync;
@@ -97,7 +98,7 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
     return resolvedItems;
   }, [historyQuery.data?.pages]);
 
-  const partner = historyQuery.data?.pages[0]?.partner ?? selectedConversation?.partner ?? null;
+  const partner = historyQuery.data?.pages[0]?.partner ?? selectedConversation?.partner ?? selectedFollowingProfile ?? null;
   const pendingItems = useMemo(() => pendingMessagesByPartner[activePartnerId] ?? [], [activePartnerId, pendingMessagesByPartner]);
   const threadItems = useMemo<ThreadMessage[]>(() => {
     const persistedItems = historyItems.map((item) => ({
@@ -112,26 +113,6 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
     );
   }, [historyItems, pendingItems]);
 
-  const conversations = useMemo(() => {
-    const items = conversationsQuery.data ?? [];
-
-    if (!partner || !activePartnerId || items.some((conversation) => conversation.partner.id === activePartnerId)) {
-      return items;
-    }
-
-    const lastVisibleMessage = threadItems[threadItems.length - 1] ?? null;
-
-    return [
-      {
-        partner,
-        lastMessage: lastVisibleMessage,
-        unreadCount: 0,
-        updatedAt: lastVisibleMessage?.createdAt ?? new Date().toISOString()
-      } satisfies ConversationSummary,
-      ...items
-    ];
-  }, [activePartnerId, conversationsQuery.data, partner, threadItems]);
-
   function setPendingMessages(partnerId: string, update: (items: ThreadMessage[]) => ThreadMessage[]) {
     setPendingMessagesByPartner((current) => ({
       ...current,
@@ -140,23 +121,23 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
   }
 
   useEffect(() => {
-    const firstConversationId = conversationsQuery.data?.[0]?.partner.id;
+    document.body.classList.add("messages-page-active");
+    return () => {
+      document.body.classList.remove("messages-page-active");
+    };
+  }, []);
 
-    if (routePartnerId || !firstConversationId) {
+  useEffect(() => {
+    if (!isMessagesPage) {
+      setDraft("");
       return;
     }
 
-    router.replace(messagesFeatureConfig.paths.detail(firstConversationId), {
-      scroll: false
-    });
-  }, [conversationsQuery.data, routePartnerId, router]);
-
-  useEffect(() => {
     setDraft("");
-  }, [activePartnerId]);
+  }, [activePartnerId, isMessagesPage]);
 
   useEffect(() => {
-    if (!activePartnerId) {
+    if (!isMessagesPage || !activePartnerId) {
       return;
     }
 
@@ -165,21 +146,18 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
     }
 
     void markConversationRead(activePartnerId).catch(() => undefined);
-  }, [activePartnerId, historyQuery.data, markConversationRead]);
+  }, [activePartnerId, historyQuery.data, isMessagesPage, markConversationRead]);
 
   useEffect(() => {
-    if (!activePartnerId) {
-      setConnectionState("idle");
+    if (!isMessagesPage || !activePartnerId) {
       return;
     }
 
     if (!canUseRealtime) {
-      setConnectionState("offline");
       return;
     }
 
     if (!realtimeAuthQuery.data) {
-      setConnectionState(realtimeAuthQuery.isLoading ? "connecting" : "offline");
       return;
     }
 
@@ -204,12 +182,10 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
         return;
       }
 
-      setConnectionState(reconnectAttempt === 0 ? "connecting" : "reconnecting");
-
       disposeChannel();
       // Tek kanalda hem yeni mesajlari hem de okundu guncellemelerini dinliyoruz.
       channel = client
-        .channel(`messages:${realtimeAuth.userId}:${activePartnerId}:${realtimeRevision}:${reconnectAttempt}`)
+        .channel(`messages:${realtimeAuth.userId}:${activePartnerId}:${reconnectAttempt}`)
         .on(
           "postgres_changes",
           {
@@ -224,7 +200,7 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
               return;
             }
 
-            void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.conversations });
+            void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.sidebar });
 
             if (!isConversationMessage(row, realtimeAuth.userId, activePartnerId)) {
               return;
@@ -253,7 +229,7 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
               return;
             }
 
-            void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.conversations });
+            void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.sidebar });
 
             if (!isConversationMessage(row, realtimeAuth.userId, activePartnerId)) {
               return;
@@ -269,7 +245,6 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
 
           if (status === "SUBSCRIBED") {
             reconnectAttempt = 0;
-            setConnectionState("connected");
             return;
           }
 
@@ -280,7 +255,6 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
           disposeChannel();
 
           if (reconnectAttempt >= messagesFeatureConfig.pagination.maxReconnectAttempts) {
-            setConnectionState("offline");
             return;
           }
 
@@ -294,7 +268,6 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
             ];
 
           reconnectAttempt += 1;
-          setConnectionState("reconnecting");
           retryTimer = setTimeout(connect, delay);
         });
     };
@@ -314,11 +287,11 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
   }, [
     activePartnerId,
     canUseRealtime,
+    isMessagesPage,
     markConversationRead,
     queryClient,
     realtimeAuthQuery.data,
-    realtimeAuthQuery.isLoading,
-    realtimeRevision
+    realtimeAuthQuery.isLoading
   ]);
 
   async function submitMessage(partnerId: string, rawContent: string, key = crypto.randomUUID()) {
@@ -403,38 +376,38 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
   }
 
   return (
-    <div className="messages-layout">
-      <ConversationList
-        activePartnerId={activePartnerId}
-        conversations={conversations}
-        isError={conversationsQuery.isError}
-        isLoading={conversationsQuery.isLoading}
-        onRetry={() => void conversationsQuery.refetch()}
-        onSelect={(partnerId) => {
-          router.replace(messagesFeatureConfig.paths.detail(partnerId), {
-            scroll: false
-          });
-        }}
-      />
+    <div className="messages-page-shell">
+      <div className="messages-layout">
+        <ConversationList
+          activePartnerId={activePartnerId}
+          conversations={recentConversations}
+          followingProfiles={followingProfiles}
+          isError={sidebarQuery.isError}
+          isLoading={sidebarQuery.isLoading}
+          onRetry={() => void sidebarQuery.refetch()}
+          onSelect={(partnerId) => {
+            router.replace(messagesFeatureConfig.paths.detail(partnerId), {
+              scroll: false
+            });
+          }}
+        />
 
-      <MessageThread
-        connectionState={connectionState}
-        draft={draft}
-        hasOlder={Boolean(historyQuery.hasNextPage)}
-        isError={historyQuery.isError}
-        isLoading={historyQuery.isLoading}
-        isLoadingOlder={historyQuery.isFetchingNextPage}
-        isSending={sendMessageMutation.isPending}
-        items={threadItems}
-        onDraftChange={setDraft}
-        onLoadOlder={() => void historyQuery.fetchNextPage()}
-        onReconnect={() => setRealtimeRevision((current) => current + 1)}
-        onRetryLoad={() => void historyQuery.refetch()}
-        onRetryMessage={(key) => void handleRetryMessage(key)}
-        onSend={() => handleSend()}
-        partner={partner}
-        showRealtimeWarning={!canUseRealtime || realtimeAuthQuery.isError}
-      />
+        <MessageThread
+          draft={draft}
+          hasOlder={Boolean(historyQuery.hasNextPage)}
+          isError={historyQuery.isError}
+          isLoading={historyQuery.isLoading}
+          isLoadingOlder={historyQuery.isFetchingNextPage}
+          isSending={sendMessageMutation.isPending}
+          items={threadItems}
+          onDraftChange={setDraft}
+          onLoadOlder={() => void historyQuery.fetchNextPage()}
+          onRetryLoad={() => void historyQuery.refetch()}
+          onRetryMessage={(key) => void handleRetryMessage(key)}
+          onSend={() => handleSend()}
+          partner={partner}
+        />
+      </div>
     </div>
   );
 }

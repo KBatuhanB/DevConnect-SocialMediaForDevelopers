@@ -4,7 +4,7 @@ export const feedFeatureConfig = {
   },
   queryKeys: {
     root: ["feed"] as const,
-    main: ["feed", "main"] as const
+    main: (mode: "following" | "global") => ["feed", "main", mode] as const
   },
   pagination: {
     pageSize: 20,
@@ -12,13 +12,20 @@ export const feedFeatureConfig = {
     threshold: 0.15,
     skeletonCount: 3
   },
+  modes: {
+    following: {
+      emptyTitle: "Takip akışını kur",
+      emptyDescription: "Takip ettiğin geliştiricilerin yeni paylaşımları burada akacak. Başlamak için profilden ilk bağlantılarını ekleyebilirsin."
+    },
+    global: {
+      emptyTitle: "Ortak akış beklemede",
+      emptyDescription: "Topluluktaki güncel paylaşımlar burada akacak. Yeni bir gönderiyle akışı sen başlatabilirsin."
+    }
+  },
   messages: {
-    title: "Takip feed'i",
-    emptyTitle: "Feed henuz bos",
-    emptyDescription: "Birini takip ettiginde veya kendi yeni paylasimlarini urettiginde ana akis burada gorunecek.",
-    loadError: "Feed verisi su an okunamiyor.",
-    loadingMore: "Daha fazla icerik yukleniyor...",
-    endReached: "Simdilik bu kadar. Yeni icerik geldiginde burada goreceksin.",
-    interactionPlaceholder: "Etkilesim sayilari Faz 10 ile gelecek."
+    loadError: "Feed verisi şu an okunmuyor.",
+    loadingMore: "Daha fazla içerik yükleniyor...",
+    endReached: "Şimdilik bu kadar. Yeni içerik geldiğinde burada göreceksin.",
+    interactionPlaceholder: "Etkileşim sayıları Faz 10 ile gelecek."
   }
 } as const;

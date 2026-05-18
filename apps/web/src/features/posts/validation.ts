@@ -5,7 +5,7 @@ import type { CreatePostInput, PostType } from "./types";
 export const postComposerSchema = z
   .object({
     postType: z.enum(postsFeatureConfig.form.postTypes),
-    content: z.string().max(postsFeatureConfig.limits.contentMaxLength, "Icerik limiti asildi."),
+    content: z.string().max(postsFeatureConfig.limits.contentMaxLength, "İçerik limiti aşıldı."),
     codeLanguage: z.string().default("")
   })
   .superRefine((values, context) => {
@@ -14,7 +14,7 @@ export const postComposerSchema = z
     if ((values.postType === "text" || values.postType === "code") && normalizedContent.length === 0) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Bu post tipi icin icerik bos olamaz.",
+        message: "Bu post tipi için içerik boş olamaz.",
         path: ["content"]
       });
     }
@@ -22,7 +22,7 @@ export const postComposerSchema = z
     if (values.postType === "code" && values.codeLanguage.length === 0) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Kod postu icin dil secmelisin.",
+        message: "Kod postu için dil seçmelisin.",
         path: ["codeLanguage"]
       });
     }
@@ -32,11 +32,11 @@ export type PostComposerValues = z.infer<typeof postComposerSchema>;
 
 export function readPostFileError(file: File) {
   if (!postsFeatureConfig.form.mediaAccept.split(",").includes(file.type)) {
-    return "Sadece PNG, JPG veya WEBP dosyalari kabul edilir.";
+    return "Sadece PNG, JPG veya WEBP dosyaları kabul edilir.";
   }
 
   if (file.size > postsFeatureConfig.limits.mediaMaxBytes) {
-    return "Gorsel boyutu 2 MB limitini asamaz.";
+    return "Görsel boyutu 2 MB limitini aşamaz.";
   }
 
   return null;
@@ -54,10 +54,10 @@ export function buildCreatePostInput(values: PostComposerValues, media: CreatePo
 export function readPostPreviewTitle(postType: PostType) {
   switch (postType) {
     case "text":
-      return "Metin onizlemesi";
+      return "Metin önizlemesi";
     case "code":
-      return "Kod onizlemesi";
+      return "Kod önizlemesi";
     case "image":
-      return "Gorsel onizlemesi";
+      return "Görsel önizlemesi";
   }
 }

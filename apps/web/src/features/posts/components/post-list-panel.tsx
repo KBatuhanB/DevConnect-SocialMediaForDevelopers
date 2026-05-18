@@ -6,6 +6,7 @@ import { Card } from "@web/components/ui/card";
 import { EmptyState } from "@web/components/ui/empty-state";
 import { Skeleton } from "@web/components/ui/skeleton";
 import { readApiErrorMessage } from "@web/lib/api-client";
+import { PostInteractions } from "./post-interactions";
 import { postsFeatureConfig } from "../config";
 import { useDeletePostMutation, usePostsByProfileQuery } from "../hooks";
 
@@ -32,13 +33,13 @@ export function PostListPanel({ profileId, title, description }: PostListPanelPr
       await deletePostMutation.mutateAsync(postId);
       pushToast({
         tone: "success",
-        title: "Paylasim silindi",
+        title: "Paylaşım silindi",
         description: postsFeatureConfig.messages.deleteSuccess
       });
     } catch (error) {
       pushToast({
         tone: "error",
-        title: "Paylasim silinemedi",
+        title: "Paylaşım silinemedi",
         description: readApiErrorMessage(error)
       });
     }
@@ -59,15 +60,16 @@ export function PostListPanel({ profileId, title, description }: PostListPanelPr
       <EmptyState
         actionLabel="Tekrar dene"
         description={postsFeatureConfig.messages.loadError}
+        eyebrow="Paylaşımlar"
         onAction={() => void postsQuery.refetch()}
-        title="Paylasimlar su an okunamiyor"
+        title="Paylaşımlar şu an okunmuyor"
       />
     );
   }
 
   if (!postsQuery.data || postsQuery.data.length === 0) {
     return (
-      <EmptyState description={description} title={title} />
+      <EmptyState description={description} eyebrow={null} showOrbit={false} title={title} />
     );
   }
 
@@ -75,10 +77,10 @@ export function PostListPanel({ profileId, title, description }: PostListPanelPr
     <Card className="profile-card post-list-card">
       <div className="section-head">
         <div>
-          <p className="eyebrow">Paylasimlar</p>
+          <p className="eyebrow">Paylaşımlar</p>
           <h2>{title}</h2>
         </div>
-        <span className="chip">{postsQuery.data.length} kayit</span>
+          <span className="chip">{postsQuery.data.length} kayıt</span>
       </div>
 
       <div className="post-list-stack">
@@ -99,7 +101,7 @@ export function PostListPanel({ profileId, title, description }: PostListPanelPr
               </div>
             </div>
 
-            {post.postType === "image" && post.mediaUrl ? <img alt="Post gorseli" className="post-media-preview" src={post.mediaUrl} /> : null}
+            {post.postType === "image" && post.mediaUrl ? <img alt="Post görseli" className="post-media-preview" src={post.mediaUrl} /> : null}
             {post.postType === "code" ? (
               <pre className="code-preview-block post-code-block">
                 <code>{post.content}</code>
@@ -107,6 +109,8 @@ export function PostListPanel({ profileId, title, description }: PostListPanelPr
             ) : post.content ? (
               <p className="lead-copy">{post.content}</p>
             ) : null}
+
+            <PostInteractions isLiked={post.isLiked} postId={post.id} stats={post.stats} />
           </article>
         ))}
       </div>

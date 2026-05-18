@@ -3,7 +3,8 @@ import { z } from "zod";
 export const feedQuerySchema = z
   .object({
     cursorCreatedAt: z.string().datetime().optional(),
-    cursorId: z.string().uuid().optional()
+    cursorId: z.string().uuid().optional(),
+    mode: z.enum(["following", "global"]).default("following")
   })
   .superRefine((query, context) => {
     if ((query.cursorCreatedAt && !query.cursorId) || (!query.cursorCreatedAt && query.cursorId)) {

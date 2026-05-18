@@ -32,11 +32,13 @@ function baseMessage() {
 }
 
 describe("messages service", () => {
-  it("konusma listesini sabit limite gore ister", async () => {
+  it("konusma ve takip listelerini sabit limitlere gore ister", async () => {
     const findConversations = vi.fn(async () => []);
+    const findFollowingProfiles = vi.fn(async () => []);
     const service = createMessagesService({
       findProfileById: async () => createPartner(),
       findConversations,
+      findFollowingProfiles,
       findConversationMessages: async () => [],
       createMessage: async () => baseMessage(),
       markConversationAsRead: async () => 0
@@ -54,6 +56,38 @@ describe("messages service", () => {
       },
       20
     );
+    expect(findFollowingProfiles).toHaveBeenCalledWith(
+      {
+        accessToken: "token-1",
+        userId: "viewer-1"
+      },
+      24
+    );
+  });
+
+  it("takip listesinden zaten konusulan kisileri ayiklar", async () => {
+    const service = createMessagesService({
+      findProfileById: async () => createPartner(),
+      findConversations: async () => [
+        {
+          partner: createPartner("user-2"),
+          lastMessage: baseMessage(),
+          unreadCount: 1,
+          updatedAt: "2026-01-01T10:00:00.000Z"
+        }
+      ],
+      findFollowingProfiles: async () => [createPartner("user-2"), createPartner("user-3")],
+      findConversationMessages: async () => [],
+      createMessage: async () => baseMessage(),
+      markConversationAsRead: async () => 0
+    });
+
+    const result = await service.getConversations({
+      accessToken: "token-1",
+      userId: "viewer-1"
+    });
+
+    expect(result.followingProfiles.map((profile) => profile.id)).toEqual(["user-3"]);
   });
 
   it("gecmisi page size'a gore kirpar ve cursor uretir", async () => {
@@ -61,6 +95,7 @@ describe("messages service", () => {
     const service = createMessagesService({
       findProfileById: async () => createPartner(),
       findConversations: async () => [],
+      findFollowingProfiles: async () => [],
       findConversationMessages: async (_context, input) => {
         requestedLimits.push(input.limit);
 
@@ -96,6 +131,7 @@ describe("messages service", () => {
     const service = createMessagesService({
       findProfileById: async () => createPartner(),
       findConversations: async () => [],
+      findFollowingProfiles: async () => [],
       findConversationMessages: async () => [
         createMessage("message-3", "2026-01-03T10:00:00.000Z"),
         createMessage("message-3", "2026-01-03T10:00:00.000Z"),
@@ -121,6 +157,7 @@ describe("messages service", () => {
     const service = createMessagesService({
       findProfileById: async () => createPartner(),
       findConversations: async () => [],
+      findFollowingProfiles: async () => [],
       findConversationMessages: async () => [],
       createMessage: async () => baseMessage(),
       markConversationAsRead: async () => 0
@@ -155,6 +192,7 @@ describe("messages service", () => {
     const service = createMessagesService({
       findProfileById: async () => createPartner(),
       findConversations: async () => [],
+      findFollowingProfiles: async () => [],
       findConversationMessages: async () => [],
       createMessage: createMessageMock,
       markConversationAsRead: async () => 0

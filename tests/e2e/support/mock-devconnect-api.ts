@@ -29,6 +29,39 @@ type MockPostView = {
   postType: PostType;
   createdAt: string;
   isOwner: boolean;
+  isLiked: boolean;
+  stats: {
+    likes: number;
+    comments: number;
+  };
+};
+
+type MockPostCommentRecord = {
+  id: string;
+  postId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+};
+
+type MockPostCommentView = {
+  id: string;
+  postId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  isOwner: boolean;
+  author: {
+    id: string;
+    username: string;
+    avatarPath: string | null;
+    avatarUrl: string | null;
+  };
+};
+
+type MockPostLikeRecord = {
+  postId: string;
+  userId: string;
 };
 
 type MockMessageView = {
@@ -50,9 +83,11 @@ type MockApiOptions = {
 const requestId = "phase12-e2e";
 const viewerId = phase12TestConfig.ids.viewer;
 const peerId = phase12TestConfig.ids.peer;
+const strangerId = phase12TestConfig.ids.stranger;
 const viewerEmail = "viewer@devconnect.test";
 const viewerUsername = "batuhan_dev";
 const peerUsername = "peer_engineer";
+const strangerUsername = "design_ops";
 
 function buildCorsHeaders() {
   return {
@@ -128,7 +163,7 @@ function buildViewerProfile(state: MockState): MockProfileView {
     skills: state.viewer.skills,
     stats: {
       followers: 2,
-      following: state.peer.isFollowing ? 1 : 0,
+      following: Number(state.peer.isFollowing) + Number(state.stranger.isFollowing),
       posts: state.posts.filter((post) => post.userId === viewerId).length
     },
     isFollowing: false,
@@ -154,6 +189,24 @@ function buildPeerProfile(state: MockState): MockProfileView {
   };
 }
 
+function buildStrangerProfile(state: MockState): MockProfileView {
+  return {
+    id: strangerId,
+    username: strangerUsername,
+    bio: state.stranger.bio,
+    avatarPath: null,
+    avatarUrl: null,
+    skills: state.stranger.skills,
+    stats: {
+      followers: state.stranger.isFollowing ? 1 : 0,
+      following: 3,
+      posts: state.posts.filter((post) => post.userId === strangerId).length
+    },
+    isFollowing: state.stranger.isFollowing,
+    isOwner: false
+  };
+}
+
 function buildProfileById(state: MockState, profileId: string) {
   if (profileId === viewerId) {
     return buildViewerProfile(state);
@@ -163,7 +216,112 @@ function buildProfileById(state: MockState, profileId: string) {
     return buildPeerProfile(state);
   }
 
+  if (profileId === strangerId) {
+    return buildStrangerProfile(state);
+  }
+
   return null;
+}
+
+function buildPostStats(state: MockState, postId: string) {
+  return {
+    likes: state.likes.filter((like) => like.postId === postId).length,
+    comments: state.comments.filter((comment) => comment.postId === postId).length
+  };
+}
+
+function buildPostView(state: MockState, post: MockPostView): MockPostView {
+  return {
+    ...post,
+    isOwner: post.userId === viewerId,
+    isLiked: state.likes.some((like) => like.postId === post.id && like.userId === viewerId),
+    stats: buildPostStats(state, post.id)
+  };
+}
+
+function buildCommentAuthor(state: MockState, userId: string) {
+  const profile = buildProfileById(state, userId);
+
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    id: profile.id,
+    username: profile.username,
+    avatarPath: profile.avatarPath,
+    avatarUrl: profile.avatarUrl
+  };
+}
+
+function buildCommentView(state: MockState, comment: MockPostCommentRecord): MockPostCommentView | null {
+  const author = buildCommentAuthor(state, comment.userId);
+
+  if (!author) {
+    return null;
+  }
+
+  return {
+    id: comment.id,
+    postId: comment.postId,
+    userId: comment.userId,
+    content: comment.content,
+    createdAt: comment.createdAt,
+    isOwner: comment.userId === viewerId,
+    author
+  };
+}
+
+function buildCommentsByPostId(state: MockState, postId: string) {
+  return state.comments
+    .filter((comment) => comment.postId === postId)
+    .sort((left, right) => left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id))
+    .map((comment) => buildCommentView(state, comment))
+    .filter((comment): comment is MockPostCommentView => comment !== null);
+}
+
+function getSearchMatchPriority(username: string, normalizedQuery: string) {
+  const normalizedUsername = username.toLowerCase();
+
+  if (normalizedUsername === normalizedQuery) {
+    return 0;
+  }
+
+  if (normalizedUsername.startsWith(normalizedQuery)) {
+    return 1;
+  }
+
+  if (normalizedUsername.includes(normalizedQuery)) {
+    return 2;
+  }
+
+  return 3;
+}
+
+function buildProfileSearchResults(state: MockState, query: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (normalizedQuery.length === 0) {
+    return [];
+  }
+
+  return [buildViewerProfile(state), buildPeerProfile(state), buildStrangerProfile(state)]
+    .filter((profile) => profile.username.toLowerCase().includes(normalizedQuery))
+    .sort((left, right) => {
+      const priorityDifference =
+        getSearchMatchPriority(left.username, normalizedQuery) - getSearchMatchPriority(right.username, normalizedQuery);
+
+      if (priorityDifference !== 0) {
+        return priorityDifference;
+      }
+
+      return left.username.localeCompare(right.username, "tr", { sensitivity: "base" });
+    })
+    .map((profile) => ({
+      id: profile.id,
+      username: profile.username,
+      avatarUrl: profile.avatarUrl
+    }));
 }
 
 function buildViewerSummary(state: MockState) {
@@ -178,12 +336,18 @@ function buildViewerSummary(state: MockState) {
   };
 }
 
-function buildFeed(state: MockState) {
+function buildFeed(state: MockState, mode: "following" | "global") {
   return state.posts
-    .filter((post) => post.userId === viewerId || (state.peer.isFollowing && post.userId === peerId))
+    .filter((post) => {
+      if (mode === "global") {
+        return true;
+      }
+
+      return post.userId === viewerId || (state.peer.isFollowing && post.userId === peerId);
+    })
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id))
     .map((post) => ({
-      ...post,
+      ...buildPostView(state, post),
       author:
         post.userId === viewerId
           ? {
@@ -197,50 +361,75 @@ function buildFeed(state: MockState) {
               username: peerUsername,
               avatarPath: null,
               avatarUrl: null
-            },
-      stats: {
-        likes: 0,
-        comments: 0
-      }
+            }
     }));
 }
 
-function buildConversationList(state: MockState) {
-  const messages = state.messages
-    .filter((message) => {
-      const ids = [message.senderId, message.receiverId];
+function buildMessagePartner(state: MockState, profileId: string) {
+  const profile = buildProfileById(state, profileId);
 
-      return ids.includes(viewerId) && ids.includes(peerId);
-    })
-    .sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id));
-  const lastMessage = messages[0] ?? null;
-  const unreadCount = state.messages.filter(
-    (message) => message.senderId === peerId && message.receiverId === viewerId && !message.isRead
-  ).length;
+  if (!profile) {
+    return null;
+  }
 
-  return lastMessage
-    ? [
-        {
-          partner: {
-            id: peerId,
-            username: peerUsername,
-            avatarPath: null,
-            avatarUrl: null
-          },
-          lastMessage,
-          unreadCount,
-          updatedAt: lastMessage.createdAt
-        }
-      ]
-    : [];
+  return {
+    id: profile.id,
+    username: profile.username,
+    avatarPath: profile.avatarPath,
+    avatarUrl: profile.avatarUrl
+  };
 }
 
-function buildMessageHistory(state: MockState) {
+function buildConversationList(state: MockState) {
+  return [peerId, strangerId]
+    .map((partnerId) => {
+      const partnerMessages = state.messages
+        .filter((message) => {
+          const ids = [message.senderId, message.receiverId];
+
+          return ids.includes(viewerId) && ids.includes(partnerId);
+        })
+        .sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id));
+      const lastMessage = partnerMessages[0] ?? null;
+      const partner = buildMessagePartner(state, partnerId);
+
+      if (!lastMessage || !partner) {
+        return null;
+      }
+
+      return {
+        partner,
+        lastMessage,
+        unreadCount: state.messages.filter(
+          (message) => message.senderId === partnerId && message.receiverId === viewerId && !message.isRead
+        ).length,
+        updatedAt: lastMessage.createdAt
+      };
+    })
+    .filter((conversation): conversation is NonNullable<typeof conversation> => conversation !== null)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt) || left.partner.username.localeCompare(right.partner.username));
+}
+
+function buildFollowingProfiles(state: MockState) {
+  const recentPartnerIds = new Set(buildConversationList(state).map((conversation) => conversation.partner.id));
+
+  return [state.peer.isFollowing ? buildPeerProfile(state) : null, state.stranger.isFollowing ? buildStrangerProfile(state) : null]
+    .filter((profile): profile is MockProfileView => profile !== null)
+    .filter((profile) => !recentPartnerIds.has(profile.id))
+    .map((profile) => ({
+      id: profile.id,
+      username: profile.username,
+      avatarPath: profile.avatarPath,
+      avatarUrl: profile.avatarUrl
+    }));
+}
+
+function buildMessageHistory(state: MockState, partnerId: string) {
   return state.messages
     .filter((message) => {
       const ids = [message.senderId, message.receiverId];
 
-      return ids.includes(viewerId) && ids.includes(peerId);
+      return ids.includes(viewerId) && ids.includes(partnerId);
     })
     .sort((left, right) => left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id));
 }
@@ -255,9 +444,17 @@ type MockState = {
     skills: string[];
     isFollowing: boolean;
   };
+  stranger: {
+    bio: string;
+    skills: string[];
+    isFollowing: boolean;
+  };
   posts: MockPostView[];
+  likes: MockPostLikeRecord[];
+  comments: MockPostCommentRecord[];
   messages: MockMessageView[];
   nextPostNumber: number;
+  nextCommentNumber: number;
   nextMessageNumber: number;
   failNextMessageSend: boolean;
 };
@@ -273,6 +470,11 @@ function createMockState(options: MockApiOptions): MockState {
       skills: ["Node.js", "SQL"],
       isFollowing: false
     },
+    stranger: {
+      bio: "Tasarim sistemleri ve urun iletisimi uzerinde calisiyor.",
+      skills: ["Product Design", "CSS"],
+      isFollowing: true
+    },
     posts: [
       {
         id: "post-peer-1",
@@ -283,9 +485,16 @@ function createMockState(options: MockApiOptions): MockState {
         codeLanguage: null,
         postType: "text",
         createdAt: "2026-05-09T10:00:00.000Z",
-        isOwner: false
+        isOwner: false,
+        isLiked: false,
+        stats: {
+          likes: 0,
+          comments: 0
+        }
       }
     ],
+    likes: [],
+    comments: [],
     messages: [
       {
         id: "message-1",
@@ -298,6 +507,7 @@ function createMockState(options: MockApiOptions): MockState {
       }
     ],
     nextPostNumber: 2,
+    nextCommentNumber: 1,
     nextMessageNumber: 2,
     failNextMessageSend: options.failFirstMessageSend ?? false
   };
@@ -445,11 +655,22 @@ export async function installMockDevConnectApi(page: Page, options: MockApiOptio
       return;
     }
 
+    if (path === "/api/profiles/search" && method === "GET") {
+      await route.fulfill(
+        buildSuccessResponse({
+          profiles: buildProfileSearchResults(state, url.searchParams.get("query") ?? "")
+        })
+      );
+      return;
+    }
+
     if (path === "/api/feed" && method === "GET") {
+      const mode = url.searchParams.get("mode") === "global" ? "global" : "following";
+
       await route.fulfill(
         buildSuccessResponse({
           page: {
-            items: buildFeed(state),
+            items: buildFeed(state, mode),
             nextCursor: null
           }
         })
@@ -468,7 +689,12 @@ export async function installMockDevConnectApi(page: Page, options: MockApiOptio
         codeLanguage: input.codeLanguage,
         postType: input.postType,
         createdAt: `2026-05-09T10:${String(state.nextPostNumber).padStart(2, "0")}:00.000Z`,
-        isOwner: true
+        isOwner: true,
+        isLiked: false,
+        stats: {
+          likes: 0,
+          comments: 0
+        }
       };
 
       state.nextPostNumber += 1;
@@ -476,7 +702,89 @@ export async function installMockDevConnectApi(page: Page, options: MockApiOptio
 
       await route.fulfill(
         buildSuccessResponse({
-          post: nextPost
+          post: buildPostView(state, nextPost)
+        }, 201)
+      );
+      return;
+    }
+
+    if (path.startsWith("/api/posts/") && path.endsWith("/likes")) {
+      const postId = path.split("/")[3];
+      const post = state.posts.find((currentPost) => currentPost.id === postId);
+
+      if (!post) {
+        await route.fulfill(buildErrorResponse(404, "POST_NOT_FOUND", "Paylasim kaydi bulunamadi."));
+        return;
+      }
+
+      if (method === "POST") {
+        if (!state.likes.some((like) => like.postId === postId && like.userId === viewerId)) {
+          state.likes.push({
+            postId,
+            userId: viewerId
+          });
+        }
+      }
+
+      if (method === "DELETE") {
+        state.likes = state.likes.filter((like) => !(like.postId === postId && like.userId === viewerId));
+      }
+
+      await route.fulfill(
+        buildSuccessResponse({
+          post: buildPostView(state, post)
+        })
+      );
+      return;
+    }
+
+    if (path.startsWith("/api/posts/") && path.endsWith("/comments") && method === "GET") {
+      const postId = path.split("/")[3];
+      const post = state.posts.find((currentPost) => currentPost.id === postId);
+
+      if (!post) {
+        await route.fulfill(buildErrorResponse(404, "POST_NOT_FOUND", "Paylasim kaydi bulunamadi."));
+        return;
+      }
+
+      await route.fulfill(
+        buildSuccessResponse({
+          comments: buildCommentsByPostId(state, postId)
+        })
+      );
+      return;
+    }
+
+    if (path.startsWith("/api/posts/") && path.endsWith("/comments") && method === "POST") {
+      const postId = path.split("/")[3];
+      const post = state.posts.find((currentPost) => currentPost.id === postId);
+      const input = readRequestBody<{ content: string }>(route);
+
+      if (!post) {
+        await route.fulfill(buildErrorResponse(404, "POST_NOT_FOUND", "Paylasim kaydi bulunamadi."));
+        return;
+      }
+
+      if (input.content.trim().length === 0) {
+        await route.fulfill(buildErrorResponse(400, "POST_COMMENT_CONTENT_REQUIRED", "Yorum bos olamaz."));
+        return;
+      }
+
+      const nextComment: MockPostCommentRecord = {
+        id: `comment-${state.nextCommentNumber}`,
+        postId,
+        userId: viewerId,
+        content: input.content.trim(),
+        createdAt: `2026-05-09T12:${String(state.nextCommentNumber).padStart(2, "0")}:00.000Z`
+      };
+
+      state.nextCommentNumber += 1;
+      state.comments.push(nextComment);
+
+      await route.fulfill(
+        buildSuccessResponse({
+          comment: buildCommentView(state, nextComment),
+          post: buildPostView(state, post)
         }, 201)
       );
       return;
@@ -502,7 +810,8 @@ export async function installMockDevConnectApi(page: Page, options: MockApiOptio
     if (path === "/api/messages" && method === "GET") {
       await route.fulfill(
         buildSuccessResponse({
-          conversations: buildConversationList(state)
+          conversations: buildConversationList(state),
+          followingProfiles: buildFollowingProfiles(state)
         })
       );
       return;
@@ -516,6 +825,12 @@ export async function installMockDevConnectApi(page: Page, options: MockApiOptio
       }
 
       const input = readRequestBody<{ receiverId: string; content: string }>(route);
+
+      if (!buildProfileById(state, input.receiverId)) {
+        await route.fulfill(buildErrorResponse(404, "PROFILE_NOT_FOUND", "Profil bulunamadi."));
+        return;
+      }
+
       const nextMessage: MockMessageView = {
         id: `message-${state.nextMessageNumber}`,
         senderId: viewerId,
@@ -537,17 +852,20 @@ export async function installMockDevConnectApi(page: Page, options: MockApiOptio
       return;
     }
 
-    if (path === `/api/messages/conversations/${peerId}` && method === "GET") {
+    if (path.startsWith("/api/messages/conversations/") && method === "GET") {
+      const partnerId = path.split("/")[4];
+      const partner = buildMessagePartner(state, partnerId);
+
+      if (!partner) {
+        await route.fulfill(buildErrorResponse(404, "PROFILE_NOT_FOUND", "Profil bulunamadi."));
+        return;
+      }
+
       await route.fulfill(
         buildSuccessResponse({
           page: {
-            partner: {
-              id: peerId,
-              username: peerUsername,
-              avatarPath: null,
-              avatarUrl: null
-            },
-            items: buildMessageHistory(state),
+            partner,
+            items: buildMessageHistory(state, partnerId),
             nextCursor: null
           }
         })
@@ -555,9 +873,16 @@ export async function installMockDevConnectApi(page: Page, options: MockApiOptio
       return;
     }
 
-    if (path === `/api/messages/conversations/${peerId}/read` && method === "POST") {
+    if (path.startsWith("/api/messages/conversations/") && path.endsWith("/read") && method === "POST") {
+      const partnerId = path.split("/")[4];
+
+      if (!buildProfileById(state, partnerId)) {
+        await route.fulfill(buildErrorResponse(404, "PROFILE_NOT_FOUND", "Profil bulunamadi."));
+        return;
+      }
+
       const unreadMessages = state.messages.filter(
-        (message) => message.senderId === peerId && message.receiverId === viewerId && !message.isRead
+        (message) => message.senderId === partnerId && message.receiverId === viewerId && !message.isRead
       );
 
       for (const message of unreadMessages) {
@@ -596,7 +921,8 @@ export async function installMockDevConnectApi(page: Page, options: MockApiOptio
       const profileId = path.split("/")[3];
       const posts = state.posts
         .filter((post) => post.userId === profileId)
-        .sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id));
+        .sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id))
+        .map((post) => buildPostView(state, post));
 
       await route.fulfill(
         buildSuccessResponse({

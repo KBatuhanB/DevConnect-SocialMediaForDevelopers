@@ -4,7 +4,7 @@ export const feedConfig = {
   routePath: "/api/feed",
   profileColumns: "id, username, avatar_path",
   postColumns:
-    "id, user_id, content, media_path, code_language, post_type, created_at, author:profiles!inner(id, username, avatar_path)",
+    "id, user_id, content, media_path, code_language, post_type, created_at, author:profiles!posts_user_id_fkey(id, username, avatar_path)",
   pagination: {
     pageSize: 20,
     queryLimit: 21

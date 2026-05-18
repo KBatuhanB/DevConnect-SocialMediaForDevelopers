@@ -14,8 +14,8 @@ export const messagesFeatureConfig = {
   },
   queryKeys: {
     root: ["messages"] as const,
+    sidebar: ["messages", "sidebar"] as const,
     realtimeAuth: ["messages", "realtime-auth"] as const,
-    conversations: ["messages", "conversations"] as const,
     history: (partnerId: string) => ["messages", "history", partnerId] as const
   },
   pagination: {
@@ -25,32 +25,37 @@ export const messagesFeatureConfig = {
   },
   composer: {
     maxLength: 5000,
-    placeholder: "Mesajini yaz. Kisa, net ve teknik kal."
+    placeholder: "Mesaj yaz..."
   },
   messages: {
     title: "Direkt mesajlar",
-    listTitle: "Konusmalar",
-    emptyListTitle: "Henuz bir konusma yok",
-    emptyListDescription: "Profillerden yeni bir DM baslatabilir veya gelen mesajlari burada takip edebilirsin.",
-    emptyThreadTitle: "Bir konusma sec",
-    emptyThreadDescription: "Soldan bir konusma sec veya profilden yeni bir DM baslat.",
-    emptyHistoryTitle: "Bu konusma yeni basliyor",
-    emptyHistoryDescription: "Ilk mesaji gondererek akisi acabilirsin.",
-    listLoadError: "Konusma listesi su an okunamiyor.",
-    historyLoadError: "Mesaj gecmisi su an okunamiyor.",
-    loadOlder: "Daha eski mesajlari getir",
-    loadingOlder: "Eski mesajlar yukleniyor...",
-    sendButton: "Gonder",
+    listTitle: "Mesaj kutusu",
+    recentTitle: "Son konuştukların",
+    followingTitle: "Takip ettiklerin",
+    recentEmpty: "Henüz bir konuşman yok. Takip ettiğin bir kişiyle yeni bir DM başlatabilirsin.",
+    followingEmpty: "Takip ettiğin kişiler burada listelenecek.",
+    startConversation: "Mesaj göndermeye başla",
+    emptyListTitle: "Henüz bir konuşma yok",
+    emptyListDescription: "Profillerden yeni bir DM başlatabilir veya gelen mesajları burada takip edebilirsin.",
+    emptyThreadTitle: "Bir konuşma seç",
+    emptyThreadDescription: "Soldan bir konuşma seç veya profilden yeni bir DM başlat.",
+    emptyHistoryTitle: "Bu konuşma yeni başlıyor",
+    emptyHistoryDescription: "İlk mesajı göndererek akışı açabilirsin.",
+    listLoadError: "Konuşma listesi şu an okunmuyor.",
+    historyLoadError: "Mesaj geçmişi şu an okunmuyor.",
+    loadOlder: "Daha eski mesajları getir",
+    loadingOlder: "Eski mesajlar yükleniyor...",
+    sendButton: "Gönder",
     retryButton: "Tekrar dene",
-    sending: "Gonderiliyor",
-    sent: "Gonderildi",
+    sending: "Gönderiliyor",
+    sent: "Gönderildi",
     read: "Okundu",
     failed: "Hata",
-    connectionConnected: "Canli baglanti hazir",
-    connectionConnecting: "Canli baglanti kuruluyor",
-    connectionReconnecting: "Canli baglanti tekrar deneniyor",
-    connectionOffline: "Canli baglanti su an kapali",
-    realtimeUnavailable: "Supabase realtime ayarlari eksik oldugu icin canli iletim kapali.",
-    profileLink: "Profili ac"
+    connectionConnected: "Canlı bağlantı hazır",
+    connectionConnecting: "Canlı bağlantı kuruluyor",
+    connectionReconnecting: "Canlı bağlantı tekrar deneniyor",
+    connectionOffline: "Canlı bağlantı şu an kapalı",
+    realtimeUnavailable: "Supabase realtime ayarları eksik olduğu için canlı iletim kapalı.",
+    profileLink: "Profili aç"
   }
 } as const;

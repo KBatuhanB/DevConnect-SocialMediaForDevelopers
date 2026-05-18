@@ -1,5 +1,7 @@
 import type { PostType } from "../posts/types";
 
+export type FeedMode = "following" | "global";
+
 export type FeedContext = {
   accessToken: string;
   userId: string;
@@ -27,6 +29,7 @@ export type FeedItemView = {
   postType: PostType;
   createdAt: string;
   isOwner: boolean;
+  isLiked: boolean;
   author: FeedAuthor;
   stats: {
     likes: number;
@@ -44,7 +47,7 @@ export type FeedRepository = {
   findFeedCandidates: (
     context: FeedContext,
     input: {
-      allowedUserIds: string[];
+      allowedUserIds?: string[];
       cursor: FeedCursor | null;
       limit: number;
     }

@@ -1,17 +1,17 @@
 export const designSystemConfig = {
   shell: {
     title: "DevConnect Studio",
-    subtitle: "Ortak shell artik profil, feed ve birebir mesajlasma akislariyla gercek urun davranisi tasiyor.",
+    subtitle: "Ortak shell artık profil, feed ve birebir mesajlaşma akışlarıyla gerçek ürün davranışı taşıyor.",
     navigation: [
       {
         href: "/dashboard",
         label: "Kontrol merkezi",
-        description: "Profil, veri ve yukleme kabuklari"
+        description: "Profil, veri ve yükleme kabukları"
       },
       {
         href: "/messages",
         label: "Mesajlar",
-        description: "Konusma listesi, gecmis ve canli iletim"
+        description: "Konuşma listesi, geçmiş ve canlı iletim"
       },
       {
         href: "/profile",
@@ -24,7 +24,7 @@ export const designSystemConfig = {
       "Veri erisimi tek API istemcisi ve query key stratejisi uzerinden yurutuluyor.",
       "Korunan alan hem middleware hem server layout seviyesiyle korunuyor.",
       "Profil mutasyonlari viewer ve profile cache katmanlarini birlikte yeniliyor.",
-      "Mesajlasma tarafinda REST gecmisi ve Supabase Realtime kanali ayni thread uzerinde bulusuyor."
+      "Mesajlaşma tarafında REST geçmişi ve Supabase Realtime kanalı aynı thread üzerinde buluşuyor."
     ]
   },
   feedback: {
@@ -39,7 +39,7 @@ export const designSystemConfig = {
       "  return response.profile;",
       "}"
     ].join("\n"),
-    mediaHint: "Faz 10'da gercek yukleme akisi buna baglanacak.",
+    mediaHint: "Faz 10'da gerçek yükleme akışı buna bağlanacak.",
     viewerBioFallback: "Biyografi henuz doldurulmadi."
   },
   accessibility: {

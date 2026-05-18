@@ -1,20 +1,19 @@
-import Link from "next/link";
-import { EmptyState } from "../components/ui/empty-state";
-import { authFeatureConfig } from "../features/auth/config";
+import { NotFoundPanel } from "../components/ui/not-found-panel";
+import { AppFrame } from "../features/app-shell/components/app-frame";
+import { hasServerSession } from "../features/auth/server";
 
 export default function NotFound() {
-  return (
-    <main className="page-shell">
-      <EmptyState
-        description="Rota bulundu ama bir sayfa eslesmedi. Ana giris alanina donerek devam edebilirsin."
-        title="Sayfa bulunamadi"
-      />
+  if (hasServerSession()) {
+    return (
+      <AppFrame layout="topbar">
+        <NotFoundPanel />
+      </AppFrame>
+    );
+  }
 
-      <div className="not-found-link-row">
-        <Link className="ui-link" href={authFeatureConfig.paths.home}>
-          Ana akisa don
-        </Link>
-      </div>
+  return (
+    <main>
+      <NotFoundPanel />
     </main>
   );
 }

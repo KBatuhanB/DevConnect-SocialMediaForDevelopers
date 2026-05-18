@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createPostsService } from "./service";
-import type { PostView } from "./types";
+import type { PostCommentView, PostView } from "./types";
 
 function createPost(overrides: Partial<PostView> = {}): PostView {
   return {
@@ -13,6 +13,29 @@ function createPost(overrides: Partial<PostView> = {}): PostView {
     postType: "text",
     createdAt: new Date().toISOString(),
     isOwner: true,
+    isLiked: false,
+    stats: {
+      likes: 0,
+      comments: 0
+    },
+    ...overrides
+  };
+}
+
+function createComment(overrides: Partial<PostCommentView> = {}): PostCommentView {
+  return {
+    id: "comment-1",
+    postId: "77777777-7777-7777-7777-777777777777",
+    userId: "11111111-1111-1111-1111-111111111111",
+    content: "Ilk yorum",
+    createdAt: new Date().toISOString(),
+    isOwner: true,
+    author: {
+      id: "11111111-1111-1111-1111-111111111111",
+      username: "batuhan_dev",
+      avatarPath: null,
+      avatarUrl: null
+    },
     ...overrides
   };
 }
@@ -148,7 +171,11 @@ describe("posts service", () => {
     const service = createPostsService({
       findPostsByProfileId: async () => [],
       findPostById: async () => createPost(),
+      findCommentsByPostId: async () => [],
       createPost: async () => null,
+      createComment: async () => null,
+      addLike: async () => undefined,
+      removeLike: async () => undefined,
       deletePost: deletePostRepository
     });
 
@@ -165,5 +192,81 @@ describe("posts service", () => {
     });
 
     expect(deletePostRepository).toHaveBeenCalled();
+  });
+
+  it("yorum icerigini normalize edip guncel postu dondurur", async () => {
+    const findPostById = vi
+      .fn()
+      .mockResolvedValueOnce(createPost())
+      .mockResolvedValueOnce(createPost({ stats: { likes: 0, comments: 1 } }));
+    const createCommentRepository = vi.fn(async (_context, _postId, content) => createComment({ content }));
+    const service = createPostsService({
+      findPostsByProfileId: async () => [],
+      findPostById,
+      findCommentsByPostId: async () => [],
+      createPost: async () => null,
+      createComment: createCommentRepository,
+      addLike: async () => undefined,
+      removeLike: async () => undefined,
+      deletePost: async () => undefined
+    });
+
+    const result = await service.createComment(
+      {
+        accessToken: "token-1",
+        userId: "11111111-1111-1111-1111-111111111111"
+      },
+      "77777777-7777-7777-7777-777777777777",
+      {
+        content: "  Ilk\r\nYorum  "
+      }
+    );
+
+    expect(createCommentRepository).toHaveBeenCalledWith(
+      {
+        accessToken: "token-1",
+        userId: "11111111-1111-1111-1111-111111111111"
+      },
+      "77777777-7777-7777-7777-777777777777",
+      "Ilk\nYorum"
+    );
+    expect(result.comment.content).toBe("Ilk\nYorum");
+    expect(result.post.stats.comments).toBe(1);
+  });
+
+  it("begenilmeyen postu begenince repository'ye yazar", async () => {
+    const findPostById = vi
+      .fn()
+      .mockResolvedValueOnce(createPost({ isLiked: false, stats: { likes: 0, comments: 0 } }))
+      .mockResolvedValueOnce(createPost({ isLiked: true, stats: { likes: 1, comments: 0 } }));
+    const addLikeRepository = vi.fn(async () => undefined);
+    const service = createPostsService({
+      findPostsByProfileId: async () => [],
+      findPostById,
+      findCommentsByPostId: async () => [],
+      createPost: async () => null,
+      createComment: async () => null,
+      addLike: addLikeRepository,
+      removeLike: async () => undefined,
+      deletePost: async () => undefined
+    });
+
+    const result = await service.likePost(
+      {
+        accessToken: "token-1",
+        userId: "11111111-1111-1111-1111-111111111111"
+      },
+      "77777777-7777-7777-7777-777777777777"
+    );
+
+    expect(addLikeRepository).toHaveBeenCalledWith(
+      {
+        accessToken: "token-1",
+        userId: "11111111-1111-1111-1111-111111111111"
+      },
+      "77777777-7777-7777-7777-777777777777"
+    );
+    expect(result.isLiked).toBe(true);
+    expect(result.stats.likes).toBe(1);
   });
 });

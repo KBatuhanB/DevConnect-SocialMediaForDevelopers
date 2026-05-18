@@ -2,7 +2,7 @@ import { AppError } from "../../core/errors/app-error";
 import { createServiceSupabaseClient } from "../../core/supabase/client";
 import { createUserSupabaseClient } from "../../core/supabase/client";
 import { profilesConfig } from "./config";
-import type { ProfileView, ProfilesContext, ReplaceAvatarInput, UpdateMyProfileInput } from "./types";
+import type { ProfileSearchItem, ProfileView, ProfilesContext, ReplaceAvatarInput, UpdateMyProfileInput } from "./types";
 
 type UserSupabaseClient = ReturnType<typeof createUserSupabaseClient>;
 
@@ -14,6 +14,30 @@ type ProfileRow = {
   skills: string[] | null;
 };
 
+type SearchProfileRow = {
+  id: string;
+  username: string;
+  avatar_path: string | null;
+};
+
+function getSearchMatchPriority(username: string, normalizedQuery: string) {
+  const normalizedUsername = username.trim().toLowerCase();
+
+  if (normalizedUsername === normalizedQuery) {
+    return 0;
+  }
+
+  if (normalizedUsername.startsWith(normalizedQuery)) {
+    return 1;
+  }
+
+  if (normalizedUsername.includes(normalizedQuery)) {
+    return 2;
+  }
+
+  return 3;
+}
+
 function buildProfileReadError(code: string, message: string) {
   return new AppError({
     statusCode: 500,
@@ -24,6 +48,14 @@ function buildProfileReadError(code: string, message: string) {
 
 function buildAvatarUrl(avatarPath: string | null) {
   return avatarPath ? `${profilesConfig.storage.avatarPublicBaseUrl}/${avatarPath}` : null;
+}
+
+function mapSearchProfile(row: SearchProfileRow): ProfileSearchItem {
+  return {
+    id: row.id,
+    username: row.username,
+    avatarUrl: buildAvatarUrl(row.avatar_path)
+  };
 }
 
 async function readCount(
@@ -127,6 +159,36 @@ export function createProfilesRepository() {
       }
 
       return mapProfileView(supabase, context, data);
+    },
+
+    async searchProfiles(context: ProfilesContext, query: string, limit: number) {
+      const supabase = createUserSupabaseClient(context.accessToken);
+      const normalizedQuery = query.trim().toLowerCase();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_path")
+        .ilike("username", `%${query}%`)
+        .order("username", { ascending: true })
+        .limit(limit * 3)
+        .returns<SearchProfileRow[]>();
+
+      if (error) {
+        throw buildProfileReadError("PROFILE_SEARCH_FAILED", "Profil aramasi su an tamamlanamadi.");
+      }
+
+      return (data ?? [])
+        .sort((left, right) => {
+          const priorityDifference =
+            getSearchMatchPriority(left.username, normalizedQuery) - getSearchMatchPriority(right.username, normalizedQuery);
+
+          if (priorityDifference !== 0) {
+            return priorityDifference;
+          }
+
+          return left.username.localeCompare(right.username, "tr", { sensitivity: "base" });
+        })
+        .slice(0, limit)
+        .map(mapSearchProfile);
     },
 
     async updateMyProfile(context: ProfilesContext, input: UpdateMyProfileInput) {

@@ -10,7 +10,7 @@ export function MediaUploadShell({ title, description }: MediaUploadShellProps) 
     <Card className="media-shell-card">
       <div className="section-head">
         <div>
-          <p className="eyebrow">Medya yukleme kabugu</p>
+          <p className="eyebrow">Medya yükleme kabuğu</p>
           <h3>{title}</h3>
         </div>
       </div>

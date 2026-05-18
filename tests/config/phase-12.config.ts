@@ -53,7 +53,7 @@ export const phase12TestConfig = {
       dashboard: "/dashboard",
       profile: "/profile",
       peerProfile: "/profile/22222222-2222-4222-8222-222222222222",
-      messages: "/messages?profileId=22222222-2222-4222-8222-222222222222"
+      messages: "/messages"
     },
     timeouts: {
       testMs: 60_000,
@@ -61,7 +61,7 @@ export const phase12TestConfig = {
       webServerMs: 120_000
     },
     smoke: {
-      routes: ["/auth", "/dashboard", "/profile", "/messages?profileId=22222222-2222-4222-8222-222222222222"]
+      routes: ["/auth", "/dashboard", "/profile", "/messages"]
     }
   }
 } as const;

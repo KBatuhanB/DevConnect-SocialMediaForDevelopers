@@ -5,6 +5,7 @@ export const profileFeatureConfig = {
   },
   api: {
     mePath: "/api/profiles/me",
+    searchPath: (query: string) => `/api/profiles/search?${new URLSearchParams({ query }).toString()}`,
     detailPath: (profileId: string) => `/api/profiles/${profileId}`,
     followPath: (profileId: string) => `/api/profiles/${profileId}/follow`,
     avatarPath: "/api/profiles/me/avatar"
@@ -12,6 +13,7 @@ export const profileFeatureConfig = {
   queryKeys: {
     root: ["profiles"] as const,
     me: ["profiles", "me"] as const,
+    search: (query: string) => ["profiles", "search", query] as const,
     detail: (profileId: string) => ["profiles", "detail", profileId] as const
   },
   form: {
@@ -19,21 +21,21 @@ export const profileFeatureConfig = {
     skillMaxCount: 10,
     skillMaxLength: 24,
     skillSeparator: ",",
-    bioPlaceholder: "Kisa, teknik ve net bir biyografi yaz.",
+    bioPlaceholder: "Kısa, teknik ve net bir biyografi yaz.",
     skillsPlaceholder: "TypeScript, React, Node.js",
     avatarAccept: "image/png,image/jpeg,image/webp",
     avatarMaxBytes: 2_097_152
   },
   messages: {
-    emptyBio: "Bu profilde henuz biyografi yok.",
+    emptyBio: "Bu profilde henüz biyografi yok.",
     emptySkills: "Henüz beceri etiketi eklenmedi.",
-    firstProfileHint: "Profilin bos gorunuyor. Kisa bir biyografi ve birkac etiket ekleyerek akisi tamamlayabilirsin.",
-    avatarHint: "PNG, JPG veya WEBP dosyasi kullan. Ust limit 2 MB.",
-    relationshipHint: "Takip butonu yalnizca kendi profilin disinda aktif olur.",
-    saveSuccess: "Profil bilgisi guncellendi.",
-    avatarSuccess: "Avatar guncellendi.",
-    followSuccess: "Takip durumu guncellendi.",
-    notFound: "Profil bulunamadi.",
-    loadError: "Profil verisi su an okunamiyor."
+    firstProfileHint: "Profilin boş görünüyor. Kısa bir biyografi ve birkaç etiket ekleyerek akışı tamamlayabilirsin.",
+    avatarHint: "PNG, JPG veya WEBP dosyası kullan. Üst limit 2 MB.",
+    relationshipHint: "Takip butonu yalnızca kendi profilin dışında aktif olur.",
+    saveSuccess: "Profil bilgisi güncellendi.",
+    avatarSuccess: "Avatar güncellendi.",
+    followSuccess: "Takip durumu güncellendi.",
+    notFound: "Profil bulunamadı.",
+    loadError: "Profil verisi şu an okunmuyor."
   }
 } as const;

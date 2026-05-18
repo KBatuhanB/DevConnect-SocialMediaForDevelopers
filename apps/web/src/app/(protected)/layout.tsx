@@ -8,5 +8,5 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     redirect(authFeatureConfig.paths.auth);
   }
 
-  return <AppFrame>{children}</AppFrame>;
+  return <AppFrame layout="topbar">{children}</AppFrame>;
 }

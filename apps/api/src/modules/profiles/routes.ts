@@ -3,6 +3,7 @@ import { profilesConfig } from "./config";
 
 type ProfilesController = {
   getMyProfile: RequestHandler;
+  searchProfiles: RequestHandler;
   getProfileById: RequestHandler;
   updateMyProfile: RequestHandler;
   followProfile: RequestHandler;
@@ -16,6 +17,7 @@ export function createProfilesRoutes(controller: ProfilesController, requireAuth
   router.get(profilesConfig.routes.me, requireAuth, controller.getMyProfile);
   router.patch(profilesConfig.routes.me, requireAuth, controller.updateMyProfile);
   router.post(profilesConfig.routes.avatar, requireAuth, controller.uploadMyAvatar);
+  router.get(profilesConfig.routes.search, requireAuth, controller.searchProfiles);
   router.get(profilesConfig.routes.detail, requireAuth, controller.getProfileById);
   router.post(profilesConfig.routes.follow, requireAuth, controller.followProfile);
   router.delete(profilesConfig.routes.follow, requireAuth, controller.unfollowProfile);

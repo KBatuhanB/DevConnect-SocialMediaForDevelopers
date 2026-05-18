@@ -12,6 +12,7 @@ function createFeedItem(id: string, createdAt: string, userId = "user-1") {
     postType: "text" as const,
     createdAt,
     isOwner: userId === "viewer-1",
+    isLiked: false,
     author: {
       id: userId,
       username: userId,
@@ -42,7 +43,8 @@ describe("feed service", () => {
           accessToken: "token-1",
           userId: "viewer-1"
         },
-        null
+        null,
+        "following"
       )
     ).resolves.toMatchObject({
       items: [{ id: "post-1" }],
@@ -70,7 +72,8 @@ describe("feed service", () => {
         accessToken: "token-1",
         userId: "viewer-1"
       },
-      null
+      null,
+      "global"
     );
 
     expect(result.items).toHaveLength(20);
@@ -94,7 +97,8 @@ describe("feed service", () => {
         accessToken: "token-1",
         userId: "viewer-1"
       },
-      null
+      null,
+      "global"
     );
 
     expect(result.items).toHaveLength(2);

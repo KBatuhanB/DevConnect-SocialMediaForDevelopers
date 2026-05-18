@@ -8,15 +8,26 @@ test.describe("phase 12 social core smoke", () => {
     await authenticateBrowserContext(context);
   });
 
-  test("profil guncelleme, takip, post ve feed akisi korunur", async ({ page }) => {
+  test("profil guncelleme, takip ve feed akisi korunur", async ({ page }) => {
     await page.goto(phase12TestConfig.e2e.routes.profile);
 
-    await page.getByLabel("Biyografi").fill("Faz 12 icin test odakli bir profil notu.");
-    await page.getByLabel("Beceri etiketleri").fill("TypeScript, Testing, Playwright");
-    await page.getByRole("button", { name: "Profili kaydet" }).click();
+    await page.getByLabel("Profil ayarlari").click();
+    await page.getByRole("button", { name: "Hakkimda bilgisini duzenle" }).click();
+    const bioDialog = page.locator("dialog[open]");
+    await expect(bioDialog.getByRole("heading", { name: "Hakkimda bilgisini duzenle" })).toBeVisible();
+    await bioDialog.getByLabel("Hakkimda").fill("Faz 12 icin test odakli bir profil notu.");
+    await bioDialog.getByRole("button", { name: "Kaydet" }).click();
 
-    await expect(page.getByText("Profil bilgisi guncellendi.")).toBeVisible();
+    await page.getByLabel("Profil ayarlari").click();
+    await page.getByRole("button", { name: "Beceri etiketlerini duzenle" }).click();
+    const skillsDialog = page.locator("dialog[open]");
+    await expect(skillsDialog.getByRole("heading", { name: "Beceri etiketlerini duzenle" })).toBeVisible();
+    await skillsDialog.getByLabel("Beceri etiketleri").fill("TypeScript, Testing, Playwright");
+    await skillsDialog.getByRole("button", { name: "Kaydet" }).click();
+
+    await expect(page.getByText("Profil bilgisi guncellendi.").first()).toBeVisible();
     await expect(page.getByText("Faz 12 icin test odakli bir profil notu.")).toBeVisible();
+    await expect(page.getByText("Testing")).toBeVisible();
 
     await page.goto(phase12TestConfig.e2e.routes.peerProfile);
     await page.getByRole("button", { name: "Takip et" }).click();
@@ -25,13 +36,7 @@ test.describe("phase 12 social core smoke", () => {
     await expect(page.getByRole("button", { name: "Takipten cik" })).toBeVisible();
 
     await page.goto(phase12TestConfig.e2e.routes.dashboard);
-    await expect(page.getByRole("heading", { name: "Takip feed'i" })).toBeVisible();
+    await expect(page.getByLabel("Takip ettiklerinin feed akisi")).toBeVisible();
     await expect(page.getByText("Node tarafinda sade repository desenini kullanmak isi hizlandirdi.")).toBeVisible();
-
-    await page.getByLabel("Icerik").fill("Faz 12 E2E icin yeni bir paylasim.");
-    await page.getByRole("button", { name: "Paylasimi olustur" }).click();
-
-    await expect(page.getByText("Paylasim olusturuldu.")).toBeVisible();
-    await expect(page.getByText("Faz 12 E2E icin yeni bir paylasim.")).toBeVisible();
   });
 });

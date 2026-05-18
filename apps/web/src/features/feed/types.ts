@@ -1,4 +1,6 @@
-import type { PostType } from "@web/features/posts/types";
+import type { PostStatsView, PostType } from "@web/features/posts/types";
+
+export type FeedMode = "following" | "global";
 
 export type FeedCursor = {
   createdAt: string;
@@ -22,11 +24,9 @@ export type FeedItemView = {
   postType: PostType;
   createdAt: string;
   isOwner: boolean;
+  isLiked: boolean;
   author: FeedAuthor;
-  stats: {
-    likes: number;
-    comments: number;
-  };
+  stats: PostStatsView;
 };
 
 export type FeedPage = {

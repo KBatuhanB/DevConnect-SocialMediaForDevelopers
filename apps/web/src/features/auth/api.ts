@@ -42,7 +42,7 @@ export async function registerWithPassword(input: RegisterInput) {
       body: JSON.stringify(input)
     });
 
-    return mapAuthSuccess(payload, "Kayit tamamlandi.");
+    return mapAuthSuccess(payload, "Kayıt tamamlandı.");
   } catch (error) {
     return mapAuthFailure(error);
   }
@@ -55,7 +55,7 @@ export async function loginWithPassword(input: LoginInput) {
       body: JSON.stringify(input)
     });
 
-    return mapAuthSuccess(payload, "Giris basarili.");
+    return mapAuthSuccess(payload, "Giriş başarılı.");
   } catch (error) {
     return mapAuthFailure(error);
   }

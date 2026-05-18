@@ -5,17 +5,16 @@ import { Card } from "../components/ui/card";
 
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <main className="page-shell error-shell">
-      <Card accent className="error-card">
+    <main className="status-page-shell">
+      <Card accent className="status-card">
         <p className="eyebrow">Global hata siniri</p>
         <h1>Arayuz bu istegi simdilik tamamlayamadi</h1>
-        <p>
-          Teknik ayrintiyi kullaniciya acmadan sade bir hata ekrani gosteriyoruz. Tekrar denemek
-          icin asagidaki butonu kullanabilirsin.
-        </p>
-        <Button onClick={() => reset()} type="button">
-          Tekrar dene
-        </Button>
+        <p>Akista kalmak icin yeniden deneyebilir veya bir onceki ekrana donerek devam edebilirsin.</p>
+        <div className="status-card-actions">
+          <Button onClick={() => reset()} type="button">
+            Tekrar dene
+          </Button>
+        </div>
       </Card>
     </main>
   );

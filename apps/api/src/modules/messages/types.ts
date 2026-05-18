@@ -32,6 +32,11 @@ export type ConversationSummary = {
   updatedAt: string;
 };
 
+export type MessagesSidebarData = {
+  conversations: ConversationSummary[];
+  followingProfiles: MessagePartner[];
+};
+
 export type MessageHistoryPage = {
   partner: MessagePartner;
   items: MessageView[];
@@ -51,6 +56,7 @@ export type PreparedSendMessageInput = {
 export type MessagesRepository = {
   findProfileById: (context: MessagesContext, profileId: string) => Promise<MessagePartner | null>;
   findConversations: (context: MessagesContext, limit: number) => Promise<ConversationSummary[]>;
+  findFollowingProfiles: (context: MessagesContext, limit: number) => Promise<MessagePartner[]>;
   findConversationMessages: (
     context: MessagesContext,
     input: {

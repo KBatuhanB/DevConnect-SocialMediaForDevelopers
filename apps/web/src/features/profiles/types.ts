@@ -16,6 +16,12 @@ export type ProfileView = {
   isOwner: boolean;
 };
 
+export type ProfileSearchItem = {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+};
+
 export type UpdateMyProfileInput = {
   bio: string;
   skills: string[];

@@ -29,6 +29,10 @@ const imagePostSchema = z.object({
 
 export const createPostSchema = z.discriminatedUnion("postType", [textPostSchema, codePostSchema, imagePostSchema]);
 
+export const createPostCommentSchema = z.object({
+  content: z.string().max(postsConfig.limits.commentMaxLength, "Yorum limiti asildi.")
+});
+
 export const profilePostsParamsSchema = z.object({
   profileId: z.string().uuid("Gecersiz profil kimligi.")
 });

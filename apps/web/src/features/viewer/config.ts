@@ -7,11 +7,11 @@ export const viewerFeatureConfig = {
   },
   emptyState: {
     title: "Profil kartin henuz dolmadi",
-    description: "Profil akisini /profile ekraninda guncelleyebilir, dashboard uzerinden feed ve post akisina gecebilirsin."
+    description: "Profil akışını /profile ekranında güncelleyebilir, dashboard üzerinden feed ve post akışına geçebilirsin."
   },
   shell: {
     title: "Kontrol merkezi",
     subtitle: "Ortak shell, veri istemcisi ve takip feed'i burada bir arada.",
-    composerPlaceholder: "Burasi artik gercek post olusturma alanina donustu."
+    composerPlaceholder: "Burası artık gerçek post oluşturma alanına dönüştü."
   }
 } as const;

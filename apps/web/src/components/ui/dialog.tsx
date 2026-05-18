@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { cn } from "../../lib/cn";
 import { Button } from "./button";
 
 type DialogProps = {
@@ -9,9 +10,12 @@ type DialogProps = {
   description?: string;
   onClose: () => void;
   children: React.ReactNode;
+  className?: string;
+  cardClassName?: string;
+  bodyClassName?: string;
 };
 
-export function Dialog({ open, title, description, onClose, children }: DialogProps) {
+export function Dialog({ open, title, description, onClose, children, className, cardClassName, bodyClassName }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
 
   useEffect(() => {
@@ -31,8 +35,8 @@ export function Dialog({ open, title, description, onClose, children }: DialogPr
   }, [open]);
 
   return (
-    <dialog className="ui-dialog" onClose={onClose} ref={dialogRef}>
-      <div className="ui-dialog-card">
+    <dialog className={cn("ui-dialog", className)} onClose={onClose} ref={dialogRef}>
+      <div className={cn("ui-dialog-card", cardClassName)}>
         <div className="ui-dialog-header">
           <div>
             <h2>{title}</h2>
@@ -44,7 +48,7 @@ export function Dialog({ open, title, description, onClose, children }: DialogPr
           </Button>
         </div>
 
-        <div className="ui-dialog-body">{children}</div>
+        <div className={cn("ui-dialog-body", bodyClassName)}>{children}</div>
       </div>
     </dialog>
   );

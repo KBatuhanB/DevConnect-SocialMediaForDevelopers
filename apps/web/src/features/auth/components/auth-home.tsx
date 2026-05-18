@@ -66,7 +66,7 @@ export function AuthHome() {
     const result = await registerMutation.mutateAsync(values);
 
     if (!result.ok) {
-      showToast("error", "Kayit tamamlanamadi", result.message);
+      showToast("error", "Kayıt tamamlanamadı", result.message);
       return;
     }
 
@@ -77,11 +77,11 @@ export function AuthHome() {
     });
 
     if (result.requiresEmailVerification) {
-      showToast("info", "Kayit olustu", authFeatureConfig.messages.emailVerification);
+      showToast("info", "Kayıt oluştu", authFeatureConfig.messages.emailVerification);
       return;
     }
 
-    showToast("success", "Kayit tamamlandi", result.message);
+    showToast("success", "Kayıt tamamlandı", result.message);
 
     startTransition(() => {
       router.push(postAuthPath);
@@ -92,7 +92,7 @@ export function AuthHome() {
     const result = await loginMutation.mutateAsync(values);
 
     if (!result.ok) {
-      showToast("error", "Giris tamamlanamadi", result.message);
+      showToast("error", "Giriş tamamlanamadı", result.message);
       return;
     }
 
@@ -101,7 +101,7 @@ export function AuthHome() {
       password: ""
     });
 
-    showToast("success", "Giris basarili", result.message);
+    showToast("success", "Giriş başarılı", result.message);
 
     startTransition(() => {
       router.push(postAuthPath);
@@ -135,16 +135,16 @@ export function AuthHome() {
 
         <section className="auth-panel-column">
           <Card className="auth-card auth-surface auth-form-surface">
-            <h1 className="auth-sr-only">DevConnect giris ve kayit ekrani</h1>
+            <h1 className="auth-sr-only">DevConnect giriş ve kayıt ekranı</h1>
 
-            <div className="auth-pill-row auth-mode-toggle" aria-label="Auth mod secici">
+            <div className="auth-pill-row auth-mode-toggle" aria-label="Auth mod seçici">
               <Button
                 className={mode === "login" ? "active-pill" : undefined}
                 onClick={() => setMode("login")}
                 type="button"
                 variant="ghost"
               >
-                Giris yap
+                Giriş yap
               </Button>
               <Button
                 className={mode === "register" ? "active-pill" : undefined}
@@ -152,14 +152,14 @@ export function AuthHome() {
                 type="button"
                 variant="ghost"
               >
-                Kayit ol
+                Kayıt ol
               </Button>
             </div>
 
             {mode === "register" ? (
               <form className="auth-form auth-form-stack" onSubmit={registerForm.handleSubmit(handleRegisterSubmit)}>
                 <label className="field-group">
-                  <span>Kullanici adi</span>
+                  <span>Kullanıcı adı</span>
                   <Input
                     autoComplete="username"
                     hasError={Boolean(registerForm.formState.errors.username)}
@@ -187,7 +187,7 @@ export function AuthHome() {
                 </label>
 
                 <label className="field-group">
-                  <span>Sifre</span>
+                  <span>Şifre</span>
                   <Input
                     autoComplete="new-password"
                     hasError={Boolean(registerForm.formState.errors.password)}
@@ -201,7 +201,7 @@ export function AuthHome() {
                 </label>
 
                 <Button disabled={registerMutation.isPending || isPending} fullWidth type="submit">
-                  Kaydi tamamla
+                  Kaydı tamamla
                 </Button>
               </form>
             ) : (
@@ -221,7 +221,7 @@ export function AuthHome() {
                 </label>
 
                 <label className="field-group">
-                  <span>Sifre</span>
+                  <span>Şifre</span>
                   <Input
                     autoComplete="current-password"
                     hasError={Boolean(loginForm.formState.errors.password)}
@@ -235,7 +235,7 @@ export function AuthHome() {
                 </label>
 
                 <Button disabled={loginMutation.isPending || isPending} fullWidth type="submit">
-                  Giris yap
+                  Giriş yap
                 </Button>
               </form>
             )}

@@ -8,9 +8,9 @@ import {
   useQuery,
   useQueryClient
 } from "@tanstack/react-query";
-import { getConversationHistory, getConversations, getRealtimeAuth, markConversationAsRead, sendMessage } from "./api";
+import { getConversationHistory, getMessagesSidebar, getRealtimeAuth, markConversationAsRead, sendMessage } from "./api";
 import { messagesFeatureConfig } from "./config";
-import type { MessageCursor, MessageHistoryPage, MessageView, RealtimeAuth, SendMessageInput } from "./types";
+import type { MessageCursor, MessageHistoryPage, MessageView, MessagesSidebarData, RealtimeAuth, SendMessageInput } from "./types";
 
 type MessageHistoryCache = InfiniteData<MessageHistoryPage, MessageCursor | null>;
 
@@ -71,7 +71,7 @@ export function upsertMessageInHistoryCache(queryClient: QueryClient, partnerId:
     };
   });
 
-  void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.conversations });
+  void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.sidebar });
 }
 
 export function updateMessageInHistoryCache(queryClient: QueryClient, partnerId: string, message: MessageView) {
@@ -83,7 +83,7 @@ export function updateMessageInHistoryCache(queryClient: QueryClient, partnerId:
     }))
   }));
 
-  void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.conversations });
+  void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.sidebar });
 }
 
 export function useMessagesRealtimeAuthQuery(enabled = true) {
@@ -94,10 +94,11 @@ export function useMessagesRealtimeAuthQuery(enabled = true) {
   });
 }
 
-export function useMessageConversationsQuery() {
-  return useQuery({
-    queryKey: messagesFeatureConfig.queryKeys.conversations,
-    queryFn: getConversations
+export function useMessagesSidebarQuery(enabled = true) {
+  return useQuery<MessagesSidebarData>({
+    queryKey: messagesFeatureConfig.queryKeys.sidebar,
+    queryFn: getMessagesSidebar,
+    enabled
   });
 }
 
@@ -130,7 +131,7 @@ export function useMarkConversationReadMutation() {
   return useMutation({
     mutationFn: (partnerId: string) => markConversationAsRead(partnerId),
     onSuccess(_result, partnerId) {
-      void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.conversations });
+      void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.sidebar });
       void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.history(partnerId) });
     }
   });

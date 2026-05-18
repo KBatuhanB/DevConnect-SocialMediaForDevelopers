@@ -3,20 +3,24 @@ import { AppError } from "../../core/errors/app-error";
 import { errorCodes } from "../../core/errors/error-codes";
 import { sendSuccess } from "../../core/http/response";
 import { mapValidationError } from "../../core/http/validation";
+import type { MessageHistoryPage, MessagesSidebarData, MessageView } from "./types";
 import { messageHistoryQuerySchema, messagePartnerParamsSchema, sendMessageSchema } from "./validation";
 
 type MessagesService = {
-  getConversations: (context: { accessToken: string; userId: string }) => Promise<unknown>;
+  getConversations: (context: { accessToken: string; userId: string }) => Promise<MessagesSidebarData>;
   getConversationHistory: (
     context: { accessToken: string; userId: string },
     partnerId: string,
     cursor: { createdAt: string; id: string } | null
-  ) => Promise<unknown>;
+  ) => Promise<MessageHistoryPage>;
   sendMessage: (
     context: { accessToken: string; userId: string },
     input: { receiverId: string; content: string }
-  ) => Promise<unknown>;
-  markConversationAsRead: (context: { accessToken: string; userId: string }, partnerId: string) => Promise<unknown>;
+  ) => Promise<MessageView>;
+  markConversationAsRead: (
+    context: { accessToken: string; userId: string },
+    partnerId: string
+  ) => Promise<{ partner: MessageHistoryPage["partner"]; updatedCount: number }>;
 };
 
 function readRequestContext(request: Request) {
@@ -50,10 +54,11 @@ export function createMessagesController(service: MessagesService) {
 
     getConversations: async (request: Request, response: Response, next: NextFunction) => {
       try {
-        const conversations = await service.getConversations(readRequestContext(request));
+        const sidebarData = await service.getConversations(readRequestContext(request));
 
         sendSuccess(response, {
-          conversations
+          conversations: sidebarData.conversations,
+          followingProfiles: sidebarData.followingProfiles
         });
       } catch (error) {
         next(error);

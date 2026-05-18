@@ -4,10 +4,11 @@ import { errorCodes } from "../../core/errors/error-codes";
 import { sendSuccess } from "../../core/http/response";
 import { mapValidationError } from "../../core/http/validation";
 import type { UpdateMyProfileInput, UploadAvatarInput } from "./types";
-import { profileParamsSchema, updateMyProfileSchema, uploadAvatarSchema } from "./validation";
+import { profileParamsSchema, searchProfilesQuerySchema, updateMyProfileSchema, uploadAvatarSchema } from "./validation";
 
 type ProfilesService = {
   getMyProfile: (context: { accessToken: string; userId: string }) => Promise<unknown>;
+  searchProfiles: (context: { accessToken: string; userId: string }, query: string) => Promise<unknown>;
   getProfileById: (context: { accessToken: string; userId: string }, profileId: string) => Promise<unknown>;
   updateMyProfile: (context: { accessToken: string; userId: string }, input: UpdateMyProfileInput) => Promise<unknown>;
   followProfile: (context: { accessToken: string; userId: string }, profileId: string) => Promise<unknown>;
@@ -38,6 +39,25 @@ export function createProfilesController(service: ProfilesService) {
 
         sendSuccess(response, {
           profile
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    searchProfiles: async (request: Request, response: Response, next: NextFunction) => {
+      try {
+        const parsedQuery = searchProfilesQuerySchema.safeParse(request.query);
+
+        if (!parsedQuery.success) {
+          next(mapValidationError(parsedQuery.error));
+          return;
+        }
+
+        const profiles = await service.searchProfiles(readRequestContext(request), parsedQuery.data.query);
+
+        sendSuccess(response, {
+          profiles
         });
       } catch (error) {
         next(error);

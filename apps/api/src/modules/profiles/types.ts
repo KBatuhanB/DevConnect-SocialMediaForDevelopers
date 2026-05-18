@@ -21,6 +21,12 @@ export type ProfileView = {
   isOwner: boolean;
 };
 
+export type ProfileSearchItem = {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+};
+
 export type UpdateMyProfileInput = {
   bio: string;
   skills: string[];
@@ -40,6 +46,7 @@ export type ReplaceAvatarInput = {
 
 export type ProfilesRepository = {
   findProfileById: (context: ProfilesContext, profileId: string) => Promise<ProfileView | null>;
+  searchProfiles: (context: ProfilesContext, query: string, limit: number) => Promise<ProfileSearchItem[]>;
   updateMyProfile: (context: ProfilesContext, input: UpdateMyProfileInput) => Promise<ProfileView | null>;
   followProfile: (context: ProfilesContext, profileId: string) => Promise<void>;
   unfollowProfile: (context: ProfilesContext, profileId: string) => Promise<void>;

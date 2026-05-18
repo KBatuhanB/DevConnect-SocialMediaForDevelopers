@@ -6,7 +6,11 @@ import { mapValidationError } from "../../core/http/validation";
 import { feedQuerySchema } from "./validation";
 
 type FeedService = {
-  getFeedPage: (context: { accessToken: string; userId: string }, cursor: { createdAt: string; id: string } | null) => Promise<unknown>;
+  getFeedPage: (
+    context: { accessToken: string; userId: string },
+    cursor: { createdAt: string; id: string } | null,
+    mode: "following" | "global"
+  ) => Promise<unknown>;
 };
 
 function readRequestContext(request: Request) {
@@ -43,7 +47,7 @@ export function createFeedController(service: FeedService) {
               }
             : null;
 
-        const page = await service.getFeedPage(readRequestContext(request), cursor);
+        const page = await service.getFeedPage(readRequestContext(request), cursor, parsedQuery.data.mode);
 
         sendSuccess(response, {
           page

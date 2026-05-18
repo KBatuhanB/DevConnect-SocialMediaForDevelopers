@@ -1,20 +1,20 @@
 export const appShellConfig = {
   app: {
     name: "DevConnect",
-    description: "Yazilimcilar icin sosyal ag ve teknik paylasim platformu",
+    description: "Yazılımcılar için sosyal ağ ve teknik paylaşım platformu",
     environment: "development"
   },
   pages: {
     authTitle: "Kimlik merkezi",
     dashboardTitle: "Kontrol merkezi",
-    messagesTitle: "Mesajlasma alani",
-    profileTitle: "Profil calisma alani",
-    profileDetailTitle: "Profil gorunumu",
-    notFoundTitle: "Sayfa bulunamadi"
+    messagesTitle: "Mesajlaşma alanı",
+    profileTitle: "Profil çalışma alanı",
+    profileDetailTitle: "Profil görünümü",
+    notFoundTitle: "Sayfa bulunamadı"
   },
   shell: {
-    banner: "Takip tabanli feed, sosyal akislari ve gercek zamanli mesajlasma ayni shell icinde calisiyor.",
-    helperText: "Faz 11 ile DM akisi, feed ve profil katmaninin ustune sade bir realtime kanal olarak eklendi.",
+    banner: "Takip tabanlı feed, sosyal akışları ve gerçek zamanlı mesajlaşma aynı shell içinde çalışıyor.",
+    helperText: "Faz 11 ile DM akışı, feed ve profil katmanının üstüne sade bir realtime kanal olarak eklendi.",
     stats: [
       {
         label: "UI kit",

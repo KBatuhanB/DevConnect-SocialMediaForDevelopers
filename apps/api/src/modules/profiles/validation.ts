@@ -16,3 +16,7 @@ export const uploadAvatarSchema = z.object({
   contentType: z.enum(profilesConfig.storage.allowedMimeTypes),
   dataUrl: z.string().min(1, "Avatar verisi bos olamaz.")
 });
+
+export const searchProfilesQuerySchema = z.object({
+  query: z.string().trim().min(1, "Arama ifadesi bos olamaz.").max(profilesConfig.limits.searchQueryMaxLength)
+});

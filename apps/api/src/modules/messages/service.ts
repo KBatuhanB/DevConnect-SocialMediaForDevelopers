@@ -3,6 +3,7 @@ import { messagesConfig } from "./config";
 import type {
   MessageCursor,
   MessageHistoryPage,
+  MessagesSidebarData,
   MessageView,
   MessagesContext,
   MessagesRepository,
@@ -47,8 +48,19 @@ function dedupeMessages(items: MessageView[]) {
 
 export function createMessagesService(repository: MessagesRepository) {
   return {
-    async getConversations(context: MessagesContext) {
-      return repository.findConversations(context, messagesConfig.limits.conversationListSize);
+    async getConversations(context: MessagesContext): Promise<MessagesSidebarData> {
+      const [conversations, followingProfiles] = await Promise.all([
+        repository.findConversations(context, messagesConfig.limits.conversationListSize),
+        repository.findFollowingProfiles(context, messagesConfig.limits.followingCandidateLimit)
+      ]);
+      const recentConversationIds = new Set(conversations.map((conversation) => conversation.partner.id));
+
+      return {
+        conversations,
+        followingProfiles: followingProfiles
+          .filter((profile) => !recentConversationIds.has(profile.id))
+          .slice(0, messagesConfig.limits.followingListSize)
+      };
     },
 
     async getConversationHistory(

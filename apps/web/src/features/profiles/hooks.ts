@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { feedFeatureConfig } from "@web/features/feed/config";
 import { viewerFeatureConfig } from "@web/features/viewer/config";
-import { followProfile, getMyProfile, getProfileById, unfollowProfile, updateMyProfile, uploadMyAvatar } from "./api";
+import { followProfile, getMyProfile, getProfileById, searchProfiles, unfollowProfile, updateMyProfile, uploadMyAvatar } from "./api";
 import { profileFeatureConfig } from "./config";
 import type { ProfileView, UpdateMyProfileInput, UploadAvatarInput } from "./types";
 
@@ -32,6 +32,15 @@ export function useProfileQuery(profileId: string, enabled = true) {
     queryKey: profileFeatureConfig.queryKeys.detail(profileId),
     queryFn: () => getProfileById(profileId),
     enabled: enabled && profileId.length > 0
+  });
+}
+
+export function useProfileSearchQuery(query: string, enabled = true) {
+  return useQuery({
+    queryKey: profileFeatureConfig.queryKeys.search(query),
+    queryFn: () => searchProfiles(query),
+    enabled: enabled && query.trim().length > 0,
+    staleTime: 30_000
   });
 }
 

@@ -1,9 +1,11 @@
 import { apiRequest } from "@web/lib/api-client";
 import { feedFeatureConfig } from "./config";
-import type { FeedCursor, FeedPage } from "./types";
+import type { FeedCursor, FeedMode, FeedPage } from "./types";
 
-export async function getFeedPage(cursor: FeedCursor | null) {
+export async function getFeedPage(mode: FeedMode, cursor: FeedCursor | null) {
   const searchParams = new URLSearchParams();
+
+  searchParams.set("mode", mode);
 
   if (cursor) {
     searchParams.set("cursorCreatedAt", cursor.createdAt);
