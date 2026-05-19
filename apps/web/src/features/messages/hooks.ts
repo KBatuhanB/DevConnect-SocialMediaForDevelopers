@@ -98,7 +98,8 @@ export function useMessagesSidebarQuery(enabled = true) {
   return useQuery<MessagesSidebarData>({
     queryKey: messagesFeatureConfig.queryKeys.sidebar,
     queryFn: getMessagesSidebar,
-    enabled
+    enabled,
+    refetchInterval: 3000
   });
 }
 
@@ -108,7 +109,8 @@ export function useMessageHistoryInfiniteQuery(partnerId: string, enabled = true
     queryFn: ({ pageParam }) => getConversationHistory(partnerId, pageParam as MessageCursor | null),
     initialPageParam: null as MessageCursor | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: enabled && partnerId.length > 0
+    enabled: enabled && partnerId.length > 0,
+    refetchInterval: 3000
   });
 }
 
