@@ -204,8 +204,9 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
 
             const message = mapRealtimeRow(row, realtimeAuth.userId);
 
-            upsertMessageInHistoryCache(queryClient, activePartnerId, message);
-            if (!message.isMine) {
+            upsertMessageInHistoryCache(queryClient, activePartnerId, message);          setTimeout(() => {
+            void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.history(activePartnerId) });
+          }, 1000);            if (!message.isMine) {
               void markConversationRead(activePartnerId).catch(() => undefined);
             }
           }
@@ -231,6 +232,9 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
             }
 
             updateMessageInHistoryCache(queryClient, activePartnerId, mapRealtimeRow(row, realtimeAuth.userId));
+            setTimeout(() => {
+              void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.history(activePartnerId) });
+            }, 1000);
           }
         )
         .subscribe((status) => {
@@ -328,6 +332,10 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
       });
 
       setPendingMessages(partnerId, (items) => items.filter((item) => item.key !== key));
+      
+      setTimeout(() => {
+        void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.history(partnerId) });
+      }, 1000);
     } catch (error) {
       setPendingMessages(partnerId, (items) =>
         items.map((item) =>
