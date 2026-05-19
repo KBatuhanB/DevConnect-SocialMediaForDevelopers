@@ -132,7 +132,6 @@ export function useMarkConversationReadMutation() {
     mutationFn: (partnerId: string) => markConversationAsRead(partnerId),
     onSuccess(_result, partnerId) {
       void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.sidebar });
-      void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.history(partnerId) });
     }
   });
 }

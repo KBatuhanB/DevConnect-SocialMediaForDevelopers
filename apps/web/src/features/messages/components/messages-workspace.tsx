@@ -141,12 +141,8 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
       return;
     }
 
-    if (!historyQuery.data) {
-      return;
-    }
-
     void markConversationRead(activePartnerId).catch(() => undefined);
-  }, [activePartnerId, historyQuery.data, isMessagesPage, markConversationRead]);
+  }, [activePartnerId, isMessagesPage, markConversationRead]);
 
   useEffect(() => {
     if (!isMessagesPage || !activePartnerId) {
@@ -209,9 +205,6 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
             const message = mapRealtimeRow(row, realtimeAuth.userId);
 
             upsertMessageInHistoryCache(queryClient, activePartnerId, message);
-            // Ensure UI reflects the new message immediately by invalidating
-            // the history query for this partner so it refetches from the server.
-            void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.history(activePartnerId) });
             if (!message.isMine) {
               void markConversationRead(activePartnerId).catch(() => undefined);
             }
@@ -238,7 +231,6 @@ export function MessagesWorkspace({ initialPartnerId = "" }: MessagesWorkspacePr
             }
 
             updateMessageInHistoryCache(queryClient, activePartnerId, mapRealtimeRow(row, realtimeAuth.userId));
-            void queryClient.invalidateQueries({ queryKey: messagesFeatureConfig.queryKeys.history(activePartnerId) });
           }
         )
         .subscribe((status) => {
