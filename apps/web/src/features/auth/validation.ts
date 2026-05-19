@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { authFeatureConfig } from "./config";
 
-const usernamePattern = /^[a-z0-9_]+$/;
+const usernamePattern = /^[A-Za-z0-9_]+$/;
 
 export const registerSchema = z.object({
   username: z
